@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: "mtr-example.com"
+    static_configs:
+    - targets: ["localhost:8080"]
+  - job_name: "mtr-golang.org"
+    static_configs:
+    - targets: ["localhost:8081"]
+  - job_name: "mtr-prometheus.io"
+    static_configs:
+    - targets: ["localhost:8082"]
+  - job_name: "mtr-www.bitwizard.nl"
+    static_configs:
+    - targets: ["localhost:8083"]
