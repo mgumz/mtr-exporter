@@ -20,7 +20,7 @@ type mtrJob struct {
 	sync.Mutex
 }
 
-func newMtrJob(mtr string, args []string) *mtrJob {
+func newMtrJob(mtr string,  args []string) *mtrJob {
 	extra := []string{
 		"-j", // json output
 	}
