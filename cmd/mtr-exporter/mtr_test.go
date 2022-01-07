@@ -13,13 +13,13 @@ func Test_MtrReportDecoding(t *testing.T) {
 		  "mtr": {
 			"src": "src.example.com",
 			"dst": "dst.example.com",
-			"tos": "0x0",
+			"tos": 0,
+			"tests": 2,
 			"psize": "64",
-			"bitpattern": "0x00",
-			"tests": "2"
+			"bitpattern": "0x00"
 		  },
 		  "hubs": [{
-			"count": "1",
+			"count": 1,
 			"host": "127.0.0.1",
 			"Loss%": 0.00,
 			"Snt": 2,
@@ -30,7 +30,7 @@ func Test_MtrReportDecoding(t *testing.T) {
 			"StDev": 0.00
 		  },
 		  {
-			"count": "2",
+			"count": 2,
 			"host": "127.0.0.2",
 			"Loss%": 50.00,
 			"Snt": 2,
@@ -41,7 +41,7 @@ func Test_MtrReportDecoding(t *testing.T) {
 			"StDev": 0.00
 		  },
 		  {
-			"count": "3",
+			"count": 3,
 			"host": "127.0.0.3",
 			"Loss%": 0.00,
 			"Snt": 2,
@@ -52,7 +52,7 @@ func Test_MtrReportDecoding(t *testing.T) {
 			"StDev": 0.91
 		  },
 		  {
-			"count": "4",
+			"count": 4,
 			"host": "127.0.0.4",
 			"Loss%": 0.00,
 			"Snt": 2,
@@ -63,7 +63,7 @@ func Test_MtrReportDecoding(t *testing.T) {
 			"StDev": 0.63
 		  },
 		  {
-			"count": "5",
+			"count": 5,
 			"host": "127.0.0.5",
 			"Loss%": 0.00,
 			"Snt": 2,
@@ -74,7 +74,7 @@ func Test_MtrReportDecoding(t *testing.T) {
 			"StDev": 3.26
 		  },
 		  {
-			"count": "6",
+			"count": 6,
 			"host": "127.0.0.6",
 			"Loss%": 0.00,
 			"Snt": 2,
@@ -85,7 +85,7 @@ func Test_MtrReportDecoding(t *testing.T) {
 			"StDev": 2.02
 		  },
 		  {
-			"count": "7",
+			"count": 7,
 			"host": "127.0.0.7",
 			"Loss%": 0.00,
 			"Snt": 2,
@@ -96,7 +96,7 @@ func Test_MtrReportDecoding(t *testing.T) {
 			"StDev": 1.20
 		  },
 		  {
-			"count": "8",
+			"count": 8,
 			"host": "127.0.0.8",
 			"Loss%": 0.00,
 			"Snt": 2,
@@ -107,7 +107,7 @@ func Test_MtrReportDecoding(t *testing.T) {
 			"StDev": 0.42
 		  },
 		  {
-			"count": "9",
+			"count": 9,
 			"host": "127.0.0.9",
 			"Loss%": 0.00,
 			"Snt": 2,
@@ -118,7 +118,7 @@ func Test_MtrReportDecoding(t *testing.T) {
 			"StDev": 0.13
 		  },
 		  {
-			"count": "10",
+			"count": 10,
 			"host": "127.0.0.10",
 			"Loss%": 0.00,
 			"Snt": 2,
@@ -136,9 +136,9 @@ func Test_MtrReportDecoding(t *testing.T) {
 		t.Fatalf("error decoding: %s\n%s", err, body)
 	}
 
-	if report.Mtr.Dst != "2hoch5.com" {
+	if report.Mtr.Dst != "dst.example.com" {
 		t.Fatalf("error parsing mtr report: expected %q, got %q\n%v",
-			"2hoch5.com",
+			"dst.example.com",
 			report.Mtr.Dst,
 			report)
 	}
