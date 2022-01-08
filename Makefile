@@ -19,11 +19,11 @@ compile-analysis:
 	cd cmd/mtr-exporter && go build -gcflags '-m'
 
 code-quality:
-	-cd cmd/mtr-exporter && go vet
-	-cd cmd/mtr-exporter && gofmt -s -d .
-	-cd cmd/mtr-exporter && golint .
-	-cd cmd/mtr-exporter && gocyclo .
-	-cd cmd/mtr-exporter && ineffassign .
+	-go vet ./cmd/mtr-exporter
+	-gofmt -s -d ./cmd/mtr-exporter
+	-golint ./cmd/mtr-exporter
+	-gocyclo ./cmd/mtr-exporter
+	-ineffassign ./cmd/mtr-exporter
 
 test:
 	cd cmd/mtr-exporter && go test -v

@@ -2,7 +2,6 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/mgumz/mtr-exporter)](https://goreportcard.com/report/github.com/mgumz/mtr-exporter)
 
-
 *mtr-exporter* periodically executes [mtr] to a given host and provides the
 measured results as [prometheus] metrics.
 
