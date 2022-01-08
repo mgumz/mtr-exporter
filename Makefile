@@ -30,7 +30,7 @@ test:
 
 release: $(BINARIES)
 
-docker-image:
+container-image:
 	docker build \
 		--file Dockerfile \
 		--build-arg MTR_BIN=bin/mtr-exporter-$(VERSION).linux.amd64 \

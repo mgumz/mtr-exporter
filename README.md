@@ -87,7 +87,7 @@ Examples:
 
 Runtime:
 
-* mtr-0.87 and newer (added --json support)
+* mtr-0.89 and newer (added --json support)
 
 Build:
 
