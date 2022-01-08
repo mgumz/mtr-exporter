@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -43,7 +44,7 @@ func (job *mtrJob) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	for i, hub := range report.Hubs {
 		labels["host"] = hub.Host
-		labels["count"] = hub.Count
+		labels["count"] = strconv.FormatInt(hub.Count, 10)
 		// mark last hub to have it easily identified
 		if i < (len(report.Hubs) - 1) {
 			hub.writeMetrics(w, labels2Prom(labels), tsMs)

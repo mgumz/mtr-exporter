@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"io"
+	"strconv"
 )
 
 type mtrResult struct {
@@ -17,14 +18,14 @@ type mtrReport struct {
 type mtrMtr struct {
 	Src        string `json:"src"`
 	Dst        string `json:"dst"`
-	Tos        string `json:"tos"`
+	Tos        int64  `json:"tos"`
 	PSize      string `json:"psize"`
 	BitPattern string `json:"bitpattern"`
-	Tests      string `json:"tests"`
+	Tests      int64  `json:"tests"`
 }
 
 type mtrHub struct {
-	Count string  `json:"count"`
+	Count int64   `json:"count"`
 	Host  string  `json:"host"`
 	Loss  float64 `json:"Loss%"`
 	Snt   int64   `json:"Snt"`
@@ -49,9 +50,9 @@ func (mtr *mtrMtr) Labels() map[string]string {
 	return map[string]string{
 		"src":        mtr.Src,
 		"dst":        mtr.Dst,
-		"tos":        mtr.Tos,
+		"tos":        strconv.FormatInt(mtr.Tos, 10),
 		"psize":      mtr.PSize,
 		"bitpattern": mtr.BitPattern,
-		"tests":      mtr.Tests,
+		"tests":      strconv.FormatInt(mtr.Tests, 10),
 	}
 }
