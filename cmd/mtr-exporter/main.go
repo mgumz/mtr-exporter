@@ -26,15 +26,15 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
-	if *doPrintVersion == true {
+	if *doPrintVersion {
 		printVersion()
 		return
 	}
-	if *doPrintUsage == true {
+	if *doPrintUsage {
 		flag.Usage()
 		return
 	}
-	if *doTimeStampLogs == true {
+	if *doTimeStampLogs {
 		log.SetFlags(log.LstdFlags | log.LUTC)
 	}
 
@@ -53,8 +53,11 @@ func main() {
 			log.Println("failed:", err)
 			return
 		}
-		log.Println("done: ",
-			len(job.Report.Hubs), "hops in", job.Duration, ".")
+		for _, report := range job.Report {
+			log.Println("done: ",
+				len(report.Hubs), "hops in", job.Duration, ".")
+		}
+
 	})
 	c.Start()
 

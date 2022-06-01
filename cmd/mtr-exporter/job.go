@@ -9,7 +9,7 @@ import (
 )
 
 type mtrJob struct {
-	Report   *mtrReport
+	Report   []*mtrReport
 	Launched time.Time
 	Duration time.Duration
 
@@ -51,8 +51,10 @@ func (job *mtrJob) Launch() error {
 	cmd2 := exec.Command(job.mtrBinary, args2...)
 
 	// launch mtr
-	buf := bytes.Buffer{}
-	cmd1.Stdout = &buf
+	buf1 := bytes.Buffer{}
+	buf2 := bytes.Buffer{}
+	cmd1.Stdout = &buf1
+	cmd2.Stdout = &buf2
 	launched := time.Now()
 	if err := cmd2.Run(); err != nil {
 		return err
@@ -60,14 +62,18 @@ func (job *mtrJob) Launch() error {
 	duration := time.Since(launched)
 
 	// decode the report
-	report := &mtrReport{}
-	if err := report.Decode(&buf); err != nil {
+	report1 := &mtrReport{}
+	if err := report1.Decode(&buf1); err != nil {
+		return err
+	}
+	report2 := &mtrReport{}
+	if err := report2.Decode(&buf2); err != nil {
 		return err
 	}
 
 	// copy the report into the job
 	job.Lock()
-	job.Report = report
+	job.Report = append(job.Report, report1, report2)
 	job.Launched = launched
 	job.Duration = duration
 	job.Unlock()

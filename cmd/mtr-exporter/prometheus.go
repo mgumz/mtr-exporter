@@ -26,31 +26,33 @@ func (job *mtrJob) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// background by a successful run of mtr. copy (pointer to) the report
 	// to have something safe to work on
 	job.Lock()
-	report := job.Report
+	reports := job.Report
 	ts := job.Launched.UTC()
 	d := job.Duration
 	job.Unlock()
 
-	labels := report.Mtr.Labels()
-	tsMs := ts.UnixNano() / int64(time.Millisecond)
+	for _, report := range reports {
+		labels := report.Mtr.Labels()
+		tsMs := ts.UnixNano() / int64(time.Millisecond)
 
-	fmt.Fprintf(w, "# mtr run: %s\n", ts.Format(time.RFC3339Nano))
-	fmt.Fprintf(w, "# cmdline: %s\n", job.cmdLine)
-	fmt.Fprintf(w, "mtr_report_duration_ms_gauge{%s} %d %d\n",
-		labels2Prom(labels), d/time.Millisecond, tsMs)
-	fmt.Fprintf(w, "mtr_report_count_hubs_gauge{%s} %d %d\n",
-		labels2Prom(labels), len(report.Hubs), tsMs)
+		fmt.Fprintf(w, "# mtr run: %s\n", ts.Format(time.RFC3339Nano))
+		fmt.Fprintf(w, "# cmdline: %s\n", job.cmdLine)
+		fmt.Fprintf(w, "mtr_report_duration_ms_gauge{%s} %d %d\n",
+			labels2Prom(labels), d/time.Millisecond, tsMs)
+		fmt.Fprintf(w, "mtr_report_count_hubs_gauge{%s} %d %d\n",
+			labels2Prom(labels), len(report.Hubs), tsMs)
 
-	for i, hub := range report.Hubs {
-		labels["host"] = hub.Host
-		labels["count"] = hub.Count
-		// mark last hub to have it easily identified
-		if i < (len(report.Hubs) - 1) {
-			hub.writeMetrics(w, labels2Prom(labels), tsMs)
-		} else {
-			labels["last"] = "true"
-			hub.writeMetrics(w, labels2Prom(labels), tsMs)
-			delete(labels, "last")
+		for i, hub := range report.Hubs {
+			labels["host"] = hub.Host
+			labels["count"] = hub.Count
+			// mark last hub to have it easily identified
+			if i < (len(report.Hubs) - 1) {
+				hub.writeMetrics(w, labels2Prom(labels), tsMs)
+			} else {
+				labels["last"] = "true"
+				hub.writeMetrics(w, labels2Prom(labels), tsMs)
+				delete(labels, "last")
+			}
 		}
 	}
 }
