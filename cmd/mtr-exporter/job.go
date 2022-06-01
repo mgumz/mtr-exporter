@@ -37,14 +37,24 @@ func newMtrJob(mtr string, args []string) *mtrJob {
 func (job *mtrJob) Launch() error {
 
 	// TODO: maybe use CommandContext to have an upper limit in the execution
+	domains := []string{
+		"us-east-bidder.mathtag.com",
+		"33across-us-east.lb.indexww.com",
+	}
+	args1 := job.args
+	args1 = append(args1, domains[0])
 
-	cmd := exec.Command(job.mtrBinary, job.args...)
+	args2 := job.args
+	args2 = append(args2, domains[1])
+
+	cmd1 := exec.Command(job.mtrBinary, args1...) // Будет работать если не передать домен через пробел
+	cmd2 := exec.Command(job.mtrBinary, args2...)
 
 	// launch mtr
 	buf := bytes.Buffer{}
-	cmd.Stdout = &buf
+	cmd1.Stdout = &buf
 	launched := time.Now()
-	if err := cmd.Run(); err != nil {
+	if err := cmd2.Run(); err != nil {
 		return err
 	}
 	duration := time.Since(launched)
