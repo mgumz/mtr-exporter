@@ -41,7 +41,7 @@ func (job *mtrJob) Launch() error {
 		"us-east-bidder.mathtag.com",
 		"33across-us-east.lb.indexww.com",
 	}
-	for i := range domains {
+	for i, _ := range domains {
 
 		args := job.args
 		args = append(args, domains[i])
@@ -51,7 +51,6 @@ func (job *mtrJob) Launch() error {
 		// launch mtr
 		buf := bytes.Buffer{}
 		cmd.Stdout = &buf
-
 		launched := time.Now()
 		if err := cmd.Run(); err != nil {
 			return err
