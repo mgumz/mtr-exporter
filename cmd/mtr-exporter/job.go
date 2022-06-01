@@ -40,6 +40,7 @@ func (job *mtrJob) Launch() error {
 	domains := []string{
 		"us-east-bidder.mathtag.com",
 		"33across-us-east.lb.indexww.com",
+		"exapi-33across-us-east.rubiconproject.com",
 	}
 
 	reports := []*mtrReport{}
