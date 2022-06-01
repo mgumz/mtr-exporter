@@ -53,9 +53,14 @@ func (job *mtrJob) Launch() error {
 	// launch mtr
 	buf1 := bytes.Buffer{}
 	buf2 := bytes.Buffer{}
+
 	cmd1.Stdout = &buf1
 	cmd2.Stdout = &buf2
+
 	launched := time.Now()
+	if err := cmd1.Run(); err != nil {
+		return err
+	}
 	if err := cmd2.Run(); err != nil {
 		return err
 	}
