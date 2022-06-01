@@ -41,42 +41,36 @@ func (job *mtrJob) Launch() error {
 		"us-east-bidder.mathtag.com",
 		"33across-us-east.lb.indexww.com",
 	}
-	args1 := job.args
-	args1 = append(args1, domains[0])
+	for i := range domains {
 
-	args2 := job.args
-	args2 = append(args2, domains[1])
+		args := job.args
+		args = append(args, domains[i])
 
-	cmd1 := exec.Command(job.mtrBinary, args1...) // Будет работать если не передать домен через пробел
-	cmd2 := exec.Command(job.mtrBinary, args2...)
+		cmd := exec.Command(job.mtrBinary, args...) // Будет работать если не передать домен через пробел
 
-	// launch mtr
-	buf1 := bytes.Buffer{}
-	buf2 := bytes.Buffer{}
-	cmd1.Stdout = &buf1
-	cmd2.Stdout = &buf2
-	launched := time.Now()
-	if err := cmd2.Run(); err != nil {
-		return err
+		// launch mtr
+		buf := bytes.Buffer{}
+		cmd.Stdout = &buf
+
+		launched := time.Now()
+		if err := cmd.Run(); err != nil {
+			return err
+		}
+		duration := time.Since(launched)
+
+		// decode the report
+		report := &mtrReport{}
+		if err := report.Decode(&buf); err != nil {
+			return err
+		}
+
+		// copy the report into the job
+		job.Lock()
+		job.Report = append(job.Report, report)
+		job.Launched = launched
+		job.Duration = duration
+		job.Unlock()
 	}
-	duration := time.Since(launched)
-
-	// decode the report
-	report1 := &mtrReport{}
-	if err := report1.Decode(&buf1); err != nil {
-		return err
-	}
-	report2 := &mtrReport{}
-	if err := report2.Decode(&buf2); err != nil {
-		return err
-	}
-
-	// copy the report into the job
-	job.Lock()
-	job.Report = append(job.Report, report1, report2)
-	job.Launched = launched
-	job.Duration = duration
-	job.Unlock()
 
 	// done.
 	return nil
