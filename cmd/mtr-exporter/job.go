@@ -42,10 +42,11 @@ func (job *mtrJob) Launch() error {
 		"33across-us-east.lb.indexww.com",
 	}
 	args := job.args
-	cmd := exec.Command(job.mtrBinary, args...) // Будет работать если не передать домен через пробел
-
 	for i := range domains {
+
 		args = append(args, domains[i])
+		cmd := exec.Command(job.mtrBinary, args...) // Будет работать если не передать домен через пробел
+
 		// launch mtr
 		buf := bytes.Buffer{}
 		cmd.Stdout = &buf
