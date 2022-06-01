@@ -42,6 +42,10 @@ func (job *mtrJob) Launch() error {
 		"33across-us-east.lb.indexww.com",
 	}
 
+	reports := []*mtrReport{}
+
+	launched := time.Now()
+
 	for i := range domains {
 		args := job.args
 		args = append(args, domains[i])
@@ -50,11 +54,9 @@ func (job *mtrJob) Launch() error {
 		// launch mtr
 		buf := bytes.Buffer{}
 		cmd.Stdout = &buf
-		launched := time.Now()
 		if err := cmd.Run(); err != nil {
 			return err
 		}
-		duration := time.Since(launched)
 
 		// decode the report
 		report := &mtrReport{}
@@ -62,13 +64,17 @@ func (job *mtrJob) Launch() error {
 			return err
 		}
 
+		reports = append(reports, report)
 		// copy the report into the job
-		job.Lock()
-		job.Report = append(job.Report, report)
-		job.Launched = launched
-		job.Duration = duration
-		job.Unlock()
 	}
+
+	duration := time.Since(launched)
+
+	job.Lock()
+	job.Report = reports
+	job.Launched = launched
+	job.Duration = duration
+	job.Unlock()
 
 	// done.
 	return nil
