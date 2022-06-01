@@ -41,13 +41,11 @@ func (job *mtrJob) Launch() error {
 		"us-east-bidder.mathtag.com",
 		"33across-us-east.lb.indexww.com",
 	}
-	for i, _ := range domains {
+	args := job.args
+	cmd := exec.Command(job.mtrBinary, args...) // Будет работать если не передать домен через пробел
 
-		args := job.args
+	for i := range domains {
 		args = append(args, domains[i])
-
-		cmd := exec.Command(job.mtrBinary, args...) // Будет работать если не передать домен через пробел
-
 		// launch mtr
 		buf := bytes.Buffer{}
 		cmd.Stdout = &buf
