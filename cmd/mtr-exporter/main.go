@@ -5,6 +5,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -59,6 +60,9 @@ func main() {
 	c.Start()
 
 	http.Handle("/metrics", job)
+	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "OK")
+	})
 
 	log.Println("serving /metrics at", *bind, "...")
 	log.Fatal(http.ListenAndServe(*bind, nil))
