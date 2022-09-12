@@ -10,13 +10,13 @@ import (
 	"time"
 )
 
-// ServeHTTP writes promtheues styled metrics about the last executed `mtr`
+// WriteReport writes promtheues styled metrics about the last executed `mtr`
 // run, see https://prometheus.io/docs/instrumenting/exposition_formats/#line-format
 //
 // NOTE: at the moment, no use of github.com/prometheus/client_golang/prometheus
 // because overhead in size and complexity. once mtr-exporter requires features
 // like push-gateway-export or graphite export or the like, we switch.
-func (job *mtrJob) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (job *mtrJob) WriteReport(w http.ResponseWriter) {
 
 	if job.Report == nil {
 		fmt.Fprintln(w, "# no current mtr runs performed (yet).")

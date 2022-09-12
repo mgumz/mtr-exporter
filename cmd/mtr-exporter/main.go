@@ -6,12 +6,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/robfig/cron/v3"
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/robfig/cron/v3"
 )
+
+var hosts arrayFlags
 
 func main() {
 
@@ -23,6 +24,7 @@ func main() {
 	doPrintVersion := flag.Bool("version", false, "show version")
 	doPrintUsage := flag.Bool("h", false, "show help")
 	doTimeStampLogs := flag.Bool("tslogs", false, "use timestamps in logs")
+	flag.Var(&hosts, "host", "[host,...] to track")
 
 	flag.Usage = usage
 	flag.Parse()
@@ -39,27 +41,35 @@ func main() {
 		log.SetFlags(log.LstdFlags | log.LUTC)
 	}
 
-	if len(flag.Args()) == 0 {
+	if len(flag.Args()) == 0 && len(hosts) == 0 {
 		log.Println("error: no mtr arguments given - at least the target host must be defined.")
 		os.Exit(1)
 		return
 	}
 
-	job := newMtrJob(*mtrBin, flag.Args())
+	var jobs []*mtrJob
+	for _, host := range hosts {
+		job := newMtrJob(*mtrBin, append(flag.Args(), host))
 
-	c := cron.New()
-	c.AddFunc(*schedule, func() {
-		log.Println("launching", job.cmdLine)
-		if err := job.Launch(); err != nil {
-			log.Println("failed:", err)
-			return
+		c := cron.New()
+		c.AddFunc(*schedule, func() {
+			log.Println("launching", job.cmdLine)
+			if err := job.Launch(); err != nil {
+				log.Println("failed:", err)
+				return
+			}
+			log.Println("done: ",
+				len(job.Report.Hubs), "hops in", job.Duration, ".")
+		})
+		c.Start()
+		jobs = append(jobs, job)
+	}
+
+	http.HandleFunc("/metrics", func(w http.ResponseWriter, r *http.Request) {
+		for _, job := range jobs{
+			job.WriteReport(w)
 		}
-		log.Println("done: ",
-			len(job.Report.Hubs), "hops in", job.Duration, ".")
 	})
-	c.Start()
-
-	http.Handle("/metrics", job)
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "OK")
 	})
