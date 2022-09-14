@@ -1,0 +1,4 @@
+# a sample mtr-jobs file
+
+job1 -- @every 30s -- -n example.com
+job2 -- @every 30s -- -n 9.9.9.9

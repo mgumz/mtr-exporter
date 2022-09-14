@@ -1,4 +1,4 @@
-package main
+package mtr
 
 import (
 	"encoding/json"
@@ -6,20 +6,20 @@ import (
 	"strconv"
 )
 
-var (
+const (
 	integerBase int = 10
 )
 
-type mtrResult struct {
-	Report mtrReport `json:"report"`
+type Result struct {
+	Report Report `json:"report"`
 }
 
-type mtrReport struct {
-	Mtr  mtrMtr   `json:"mtr"`
-	Hubs []mtrHub `json:"hubs"`
+type Report struct {
+	Mtr  Mtr   `json:"mtr"`
+	Hubs []Hub `json:"hubs"`
 }
 
-type mtrMtr struct {
+type Mtr struct {
 	Src        string `json:"src"`
 	Dst        string `json:"dst"`
 	Tos        int64  `json:"tos"`
@@ -28,7 +28,7 @@ type mtrMtr struct {
 	Tests      int64  `json:"tests"`
 }
 
-type mtrHub struct {
+type Hub struct {
 	Count int64   `json:"count"`
 	Host  string  `json:"host"`
 	Loss  float64 `json:"Loss%"`
@@ -40,20 +40,21 @@ type mtrHub struct {
 	StDev float64 `json:"StDev"`
 }
 
-func (report *mtrReport) Decode(r io.Reader) error {
+func (report *Report) Decode(r io.Reader) error {
 	dec := json.NewDecoder(r)
-
-	result := mtrResult{}
+	result := Result{}
 	if err := dec.Decode(&result); err != nil {
 		return err
 	}
-
 	*report = result.Report
-
 	return nil
 }
 
-func (mtr *mtrMtr) Labels() map[string]string {
+func (report *Report) Empty() bool {
+	return len(report.Hubs) == 0
+}
+
+func (mtr *Mtr) Labels() map[string]string {
 	return map[string]string{
 		"src":        mtr.Src,
 		"dst":        mtr.Dst,

@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/mgumz/mtr-exporter/pkg/job"
+
 	"github.com/robfig/cron/v3"
 )
 
@@ -17,8 +19,11 @@ func main() {
 	log.SetFlags(0)
 
 	mtrBin := flag.String("mtr", "mtr", "path to `mtr` binary")
+	jobLabel := flag.String("label", "mtr-exporter-cli", "job label")
 	bind := flag.String("bind", ":8080", "bind address")
-	schedule := flag.String("schedule", "@every 60s", "Schedule at which often `mtr` is launched")
+	jobFile := flag.String("jobs", "", "file containing job definitions")
+	schedule := flag.String("schedule", "@every 60s", "schedule at which often `mtr` is launched")
+	doWatchJobsFile := flag.String("watch-jobs", "", "re-parse -jobs file to schedule")
 	doPrintVersion := flag.Bool("version", false, "show version")
 	doPrintUsage := flag.Bool("h", false, "show help")
 	doTimeStampLogs := flag.Bool("tslogs", false, "use timestamps in logs")
@@ -30,44 +35,61 @@ func main() {
 		printVersion()
 		return
 	}
-
 	if *doPrintUsage {
 		flag.Usage()
 		return
 	}
-
 	if *doTimeStampLogs {
 		log.SetFlags(log.LstdFlags | log.LUTC)
 	}
 
-	if len(flag.Args()) == 0 {
-		log.Println("error: no mtr arguments given - at least the target host must be defined.")
-		os.Exit(1)
+	collector := job.NewCollector()
+	scheduler := cron.New()
 
-		return
-	}
-
-	job := newMtrJob(*mtrBin, flag.Args())
-
-	c := cron.New()
-
-	_, err := c.AddFunc(*schedule, func() {
-		log.Println("launching", job.cmdLine)
-		if err := job.Launch(); err != nil {
-			log.Println("failed:", err)
-			return
+	if len(flag.Args()) > 0 {
+		j := job.NewJob(*mtrBin, flag.Args(), *schedule)
+		j.Label = *jobLabel
+		if _, err := scheduler.AddJob(j.Schedule, j); err != nil {
+			log.Printf("error: unable to add %q to scheduler: %v", j.Label, err)
+			os.Exit(1)
 		}
-		log.Println("done: ",
-			len(job.Report.Hubs), "hops in", job.Duration, ".")
-	})
-	if err != nil {
-		log.Fatalf(err.Error())
-		os.Exit(1)
+		if !collector.AddJob(j.JobMeta) {
+			log.Printf("error: unable to add %q to collector", j.Label)
+			os.Exit(1)
+		}
+		j.UpdateFn = func(meta job.JobMeta) bool { return collector.UpdateJob(meta) }
 	}
 
-	c.Start()
+	if *jobFile != "" {
+		if *doWatchJobsFile != "" {
+			log.Printf("info: watching %q at %q", *jobFile, *doWatchJobsFile)
+			job.WatchJobsFile(*jobFile, *mtrBin, *doWatchJobsFile, collector)
+		} else {
+			jobs, _, err := job.ParseJobFile(*jobFile, *mtrBin)
+			if err != nil {
+				log.Printf("error: parsing jobs file %q: %s", *jobFile, err)
+				os.Exit(1)
+			}
+			if jobs.Empty() {
+				log.Println("error: no mtr jobs defined - provide at least one via -file or via arguments")
+				os.Exit(1)
+			}
+			for _, j := range jobs {
+				if collector.AddJob(j.JobMeta) {
+					if _, err := scheduler.AddJob(j.Schedule, j); err != nil {
+						log.Printf("error: unable to add %q to collector: %v", j.Label, err)
+						os.Exit(1)
+					}
+					j.UpdateFn = func(meta job.JobMeta) bool { return collector.UpdateJob(meta) }
+				} // FIXME: log failed addition to collector, most likely
+				// due to duplicate label
+			}
+		}
+	}
 
-	http.Handle("/metrics", job)
+	scheduler.Start()
+
+	http.Handle("/metrics", collector)
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "OK")
 	})
