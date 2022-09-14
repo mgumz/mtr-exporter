@@ -8,8 +8,9 @@ BINARIES=$(addprefix bin/mtr-exporter-$(VERSION)., $(BUILDS))
 
 LDFLAGS=-ldflags "-X main.Version=$(VERSION) -X main.BuildDate=$(BUILD_DATE) -X main.GitHash=$(GIT_HASH)"
 
-mtr-exporter: cmd/mtr-exporter
-	go build -v -o $@ ./$^
+mtr-exporter: bin/mtr-exporter
+bin/mtr-exporter: cmd/mtr-exporter bin
+	go build -v -o $@ ./$<
 
 ######################################################
 ## release related

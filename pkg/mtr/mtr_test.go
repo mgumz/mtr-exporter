@@ -1,4 +1,4 @@
-package main
+package mtr
 
 import (
 	"strings"
@@ -130,7 +130,7 @@ func Test_MtrReportDecoding(t *testing.T) {
 		}
 	}`
 
-	report := &mtrReport{}
+	report := &Report{}
 	if err := report.Decode(strings.NewReader(body)); err != nil {
 		t.Fatalf("error decoding: %s\n%s", err, body)
 	}
