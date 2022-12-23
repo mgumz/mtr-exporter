@@ -35,7 +35,6 @@ func newMtrJob(mtr string, args []string) *mtrJob {
 }
 
 func (job *mtrJob) Launch() error {
-
 	// TODO: maybe use CommandContext to have an upper limit in the execution
 
 	cmd := exec.Command(job.mtrBinary, job.args...)

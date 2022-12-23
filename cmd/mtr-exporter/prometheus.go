@@ -17,7 +17,6 @@ import (
 // because overhead in size and complexity. once mtr-exporter requires features
 // like push-gateway-export or graphite export or the like, we switch.
 func (job *mtrJob) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-
 	if job.Report == nil {
 		fmt.Fprintln(w, "# no current mtr runs performed (yet).")
 		return

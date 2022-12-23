@@ -14,7 +14,6 @@ import (
 )
 
 func main() {
-
 	log.SetFlags(0)
 
 	mtrBin := flag.String("mtr", "mtr", "path to `mtr` binary")
