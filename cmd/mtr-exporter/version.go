@@ -18,11 +18,14 @@ func printVersion() {
 	fmt.Println("mtr-exporter:\t" + Version)
 	fmt.Printf("compiled:\t%v on %v/%v\n",
 		runtime.Version(), runtime.GOOS, runtime.GOARCH)
+
 	if GitHash != "" {
 		fmt.Println("git:\t" + GitHash)
 	}
+
 	if BuildDate != "" {
 		fmt.Println("build:\t" + BuildDate)
 	}
+
 	fmt.Println()
 }

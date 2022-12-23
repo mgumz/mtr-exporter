@@ -36,16 +36,17 @@ func newMtrJob(mtr string, args []string) *mtrJob {
 
 func (job *mtrJob) Launch() error {
 	// TODO: maybe use CommandContext to have an upper limit in the execution
-
 	cmd := exec.Command(job.mtrBinary, job.args...)
 
 	// launch mtr
 	buf := bytes.Buffer{}
 	cmd.Stdout = &buf
 	launched := time.Now()
+
 	if err := cmd.Run(); err != nil {
 		return err
 	}
+
 	duration := time.Since(launched)
 
 	// decode the report

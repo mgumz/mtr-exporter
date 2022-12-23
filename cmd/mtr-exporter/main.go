@@ -30,10 +30,12 @@ func main() {
 		printVersion()
 		return
 	}
+
 	if *doPrintUsage {
 		flag.Usage()
 		return
 	}
+
 	if *doTimeStampLogs {
 		log.SetFlags(log.LstdFlags | log.LUTC)
 	}
@@ -41,6 +43,7 @@ func main() {
 	if len(flag.Args()) == 0 {
 		log.Println("error: no mtr arguments given - at least the target host must be defined.")
 		os.Exit(1)
+
 		return
 	}
 

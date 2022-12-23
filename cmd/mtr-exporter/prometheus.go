@@ -70,6 +70,8 @@ func labels2Prom(labels map[string]string) string {
 	for k, v := range labels {
 		sl = append(sl, fmt.Sprintf("%s=%q", k, v))
 	}
+
 	sl.Sort()
+
 	return strings.Join(sl, ",")
 }

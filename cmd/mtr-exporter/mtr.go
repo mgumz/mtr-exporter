@@ -38,11 +38,14 @@ type mtrHub struct {
 
 func (report *mtrReport) Decode(r io.Reader) error {
 	dec := json.NewDecoder(r)
+
 	result := mtrResult{}
 	if err := dec.Decode(&result); err != nil {
 		return err
 	}
+
 	*report = result.Report
+
 	return nil
 }
 
