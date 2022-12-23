@@ -50,7 +50,8 @@ func main() {
 	job := newMtrJob(*mtrBin, flag.Args())
 
 	c := cron.New()
-	c.AddFunc(*schedule, func() {
+
+	_, err := c.AddFunc(*schedule, func() {
 		log.Println("launching", job.cmdLine)
 		if err := job.Launch(); err != nil {
 			log.Println("failed:", err)
@@ -59,6 +60,11 @@ func main() {
 		log.Println("done: ",
 			len(job.Report.Hubs), "hops in", job.Duration, ".")
 	})
+	if err != nil {
+		log.Fatalf(err.Error())
+		os.Exit(1)
+	}
+
 	c.Start()
 
 	http.Handle("/metrics", job)
