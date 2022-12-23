@@ -55,7 +55,7 @@ func (job *mtrJob) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (hub mtrHub) writeMetrics(w io.Writer, labels string, ts int64) {
+func (hub *mtrHub) writeMetrics(w io.Writer, labels string, ts int64) {
 	fmt.Fprintf(w, "mtr_report_loss_gauge{%s} %f %d\n", labels, hub.Loss, ts)
 	fmt.Fprintf(w, "mtr_report_snt_gauge{%s} %d %d\n", labels, hub.Snt, ts)
 	fmt.Fprintf(w, "mtr_report_last_gauge{%s} %f %d\n", labels, hub.Last, ts)
