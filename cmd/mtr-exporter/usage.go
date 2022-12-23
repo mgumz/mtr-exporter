@@ -3,7 +3,6 @@ package main
 import "fmt"
 
 func usage() {
-
 	usage := `Usage: mtr-exporter [FLAGS] -- [MTR-FLAGS]
 
 FLAGS:

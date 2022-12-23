@@ -6,7 +6,6 @@ import (
 )
 
 func Test_MtrReportDecoding(t *testing.T) {
-
 	body := `
 	{
 		"report": {
