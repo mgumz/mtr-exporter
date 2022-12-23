@@ -1,0 +1,65 @@
+# options for analysis running
+run:
+  modules-download-mode: mod
+linters-settings:
+  funlen:
+    lines: 140
+  misspell:
+    locale: US
+  goimports:
+    local-prefixes: github.com/golangci/golangci-lint
+  gocritic:
+    enabled-tags:
+      - performance
+      - style
+      - experimental
+    disabled-checks:
+      - whyNoLint
+      - wrapperFunc
+
+linters:
+  disable-all: true
+  enable:
+    - bodyclose
+    - deadcode
+    - depguard
+    - dogsled
+    - dupl
+    - errcheck
+    - exportloopref
+    - exhaustive
+    - funlen
+    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    - gomnd
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - lll
+    - misspell
+    - nakedret
+    - noctx
+    - nolintlint
+    - revive
+    - rowserrcheck
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - whitespace
+    - wsl
+
+issues:
+   exclude-rules:
+     - text: "Subprocess launched with a potential tainted input or cmd arguments"
+       linters:
+         - gosec
