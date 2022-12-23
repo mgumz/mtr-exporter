@@ -6,6 +6,10 @@ import (
 	"strconv"
 )
 
+var (
+	integerBase int = 10
+)
+
 type mtrResult struct {
 	Report mtrReport `json:"report"`
 }
@@ -53,9 +57,9 @@ func (mtr *mtrMtr) Labels() map[string]string {
 	return map[string]string{
 		"src":        mtr.Src,
 		"dst":        mtr.Dst,
-		"tos":        strconv.FormatInt(mtr.Tos, 10),
+		"tos":        strconv.FormatInt(mtr.Tos, integerBase),
 		"psize":      mtr.PSize,
 		"bitpattern": mtr.BitPattern,
-		"tests":      strconv.FormatInt(mtr.Tests, 10),
+		"tests":      strconv.FormatInt(mtr.Tests, integerBase),
 	}
 }
