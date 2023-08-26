@@ -94,7 +94,7 @@ Build:
 
 ## Building
 
-    $> git clone github.com/mgumz/mtr-exporter
+    $> git clone https://github.com/mgumz/mtr-exporter
     $> cd mtr-exporter
     $> make
 
