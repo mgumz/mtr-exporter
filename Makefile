@@ -1,33 +1,53 @@
+PROJECT=mtr-exporter
 VERSION=$(shell cat VERSION)
 BUILD_DATE=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 GIT_HASH=$(shell git rev-parse HEAD)
 CONTAINER_PLATFORM?=linux/amd64
 
-BUILDS=linux.amd64 linux.386 linux.arm64 linux.mips64 windows.amd64.exe freebsd.amd64 darwin.amd64 darwin.arm64
-BINARIES=$(addprefix bin/mtr-exporter-$(VERSION)., $(BUILDS))
+TARGETS=linux.amd64 	\
+	linux.386 			\
+	linux.arm64 		\
+	linux.mips64 		\
+	windows.amd64.exe 	\
+	freebsd.amd64 		\
+	darwin.amd64 		\
+	darwin.arm64
+
+BINARIES=$(addprefix bin/$(PROJECT)-$(VERSION)., $(TARGETS))
+RELEASES=$(subst windows.amd64.tar.gz,windows.amd64.zip,$(foreach r,$(subst .exe,,$(TARGETS)),releases/$(PROJECT)-$(VERSION).$(r).tar.gz))
 
 LDFLAGS=-ldflags "-X main.Version=$(VERSION) -X main.BuildDate=$(BUILD_DATE) -X main.GitHash=$(GIT_HASH)"
 
-mtr-exporter: bin/mtr-exporter
-bin/mtr-exporter: cmd/mtr-exporter bin
-	go build -v -o $@ ./$<
+$(PROJECT): 
+	go build -v -o $@ ./cmd/$(PROJECT)
 
 ######################################################
 ## release related
 
-release: $(BINARIES)
+binaries: $(BINARIES)
+release: $(RELEASES)
+releases: $(RELEASES)
+list-releases:
+	@echo $(RELEASES)|tr ' ' '\n'
+clean:
+	rm -f $(BINARIES) $(RELEASES)
 
-bin/mtr-exporter-$(VERSION).linux.%: bin
-	env GOOS=linux GOARCH=$* CGO_ENABLED=0 go build $(LDFLAGS) -o $@ ./cmd/mtr-exporter
+$(PROJECT): bin/$(PROJECT)
+bin/$(PROJECT): cmd/$(PROJECT) bin
+	go build -v -o $@ ./$<
 
-bin/mtr-exporter-$(VERSION).darwin.%: bin
-	env GOOS=darwin GOARCH=$* CGO_ENABLED=0 go build $(LDFLAGS) -o $@ ./cmd/mtr-exporter
+bin/$(PROJECT)-$(VERSION).%:
+	env GOARCH=$(subst .,,$(suffix $(subst .exe,,$@))) GOOS=$(subst .,,$(suffix $(basename $(subst .exe,,$@)))) CGO_ENABLED=0 \
+	go build $(LDFLAGS) -o $@ ./cmd/$(PROJECT)
 
-bin/mtr-exporter-$(VERSION).windows.%.exe: bin
-	env GOOS=windows GOARCH=$* CGO_ENABLED=0 go build $(LDFLAGS) -o $@ ./cmd/mtr-exporter
-
-bin/mtr-exporter-$(VERSION).freebsd.%: bin
-	env GOOS=freebsd GOARCH=$* CGO_ENABLED=0 go build $(LDFLAGS) -o $@ ./cmd/mtr-exporter
+releases/mtr-exporter-$(VERSION).%.zip: bin/$(PROJECT)-$(VERSION).%.exe
+	mkdir -p releases
+	zip -9 -j -r $@ README.md LICENSE $<
+releases/$(PROJECT)-$(VERSION).%.tar.gz: bin/$(PROJECT)-$(VERSION).%
+	mkdir -p releases
+	tar -cf $(basename $@) README.md LICENSE && \
+		tar -rf $(basename $@) --strip-components 1 $< && \
+		gzip -9 $(basename $@)
 
 bin:
 	mkdir $@
@@ -38,20 +58,77 @@ container-image:
 		--file Dockerfile \
 		--platform=$(CONTAINER_PLATFORM) \
 		--build-arg VERSION=$(VERSION) \
-		--tag $(CONTAINER_PLATFORM)-mtr-exporter:$(VERSION) .
+		--tag $(CONTAINER_PLATFORM)-$(PROJECT):$(VERSION) .
 
 ######################################################
 ## dev related
 
-compile-analysis: cmd/mtr-exporter
+deps-vendor:
+	go mod vendor
+deps-cleanup:
+	go mod tidy
+deps-ls:
+	go list -m -mod=readonly -f '{{if not .Indirect}}{{.}}{{end}}' all
+deps-ls-updates:
+	go list -m -mod=readonly -f '{{if not .Indirect}}{{.}}{{end}}' -u all
+
+
+
+compile-analysis: cmd/$(PROJECT)
 	go build -gcflags '-m' ./$^
 
-code-quality:
-	-go vet ./cmd/mtr-exporter
-	-gofmt -s -d ./cmd/mtr-exporter
-	-golint ./cmd/mtr-exporter
-	-gocyclo ./cmd/mtr-exporter
-	-ineffassign ./cmd/mtr-exporter
+reports: report-vuln report-gosec
+reports: report-staticcheck report-vet report-ineffassign
+reports: report-cyclo
+reports: report-errcheck report-gocritic
+reports: report-misspell
+
+report-cyclo:
+	@echo '####################################################################'
+	gocyclo ./cmd/...
+report-misspell:
+	@echo '####################################################################'
+	misspell .
+report-ineffassign:
+	@echo '####################################################################'
+	ineffassign ./cmd/... ./pkg/...
+report-vet:
+	@echo '####################################################################'
+	go vet ./cmd/... ./pkg/...
+report-staticcheck:
+	@echo '####################################################################'
+	staticcheck ./cmd/... ./pkg/...
+report-vuln:
+	@echo '####################################################################'
+	govulncheck ./cmd/... ./pkg/...
+report-gosec:
+	@echo '####################################################################'
+	gosec ./cmd/... ./pkg/...
+report-grype:
+	@echo '####################################################################'
+	grype .
+report-errcheck:
+	@echo '####################################################################'
+	errcheck -ignorepkg fmt ./...
+report-gocritic:
+	@echo '####################################################################'
+	gocritic check ./cmd/... ./pkg/...
+
+fetch-report-tools:
+	go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
+	go install github.com/client9/misspell/cmd/misspell@latest
+	go install github.com/gordonklaus/ineffassign@latest
+	go install honnef.co/go/tools/cmd/staticcheck@latest
+	go install golang.org/x/vuln/cmd/govulncheck@latest
+	go install github.com/securego/gosec/v2/cmd/gosec@latest
+	go install -v github.com/go-critic/go-critic/cmd/gocritic@latest
+	go install github.com/kisielk/errcheck@latest
+
+fetch-report-tool-grype:
+	go install github.com/anchore/grype@latest
+
 
 test:
-	go test -v ./cmd/mtr-exporter
+	go test -v ./cmd/$(PROJECT)
+
+.PHONY: $(PROJECT) bin/$(PROJECT) binaries releases
