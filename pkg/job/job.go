@@ -15,6 +15,7 @@ type JobMeta struct {
 	Duration time.Duration
 	Schedule string
 	Label    string
+	CmdLine  string
 }
 
 type Job struct {
@@ -39,6 +40,7 @@ func NewJob(mtr string, args []string, schedule string) *Job {
 		cmdLine:   strings.Join(cmd.Args, " "),
 	}
 	job.JobMeta.Schedule = schedule
+	job.JobMeta.CmdLine = job.cmdLine
 	return &job
 }
 
