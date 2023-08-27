@@ -57,8 +57,7 @@ func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		labels["mtr_exporter_job"] = job.Label
 		tsMs := ts.UnixNano() / int64(time.Millisecond)
 
-		fmt.Fprintf(w, "# mtr run %s: %s\n", job.Label, ts.Format(time.RFC3339Nano))
-		// FIXME: remove or rewrite: fmt.Fprintf(w, "# cmdline: %s\n", job.cmdLine)
+		fmt.Fprintf(w, "# mtr run %s: %s -- %s\n", job.Label, ts.Format(time.RFC3339Nano), job.CmdLine)
 
 		l := labels2Prom(labels)
 
