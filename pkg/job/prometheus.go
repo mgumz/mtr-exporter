@@ -75,7 +75,7 @@ func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		for i, hub := range report.Hubs {
 			labels["host"] = hub.Host
-			labels["count"] = strconv.FormatInt(hub.Count, integerBase)
+			labels["count"] = strconv.FormatInt(int64(hub.Count), integerBase)
 			// mark last hub to have it easily identified
 			if i < (len(report.Hubs) - 1) {
 				hub.WriteMetrics(w, labels2Prom(labels), tsMs)
