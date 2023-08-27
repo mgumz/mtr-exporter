@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/mgumz/mtr-exporter/pkg/mtr"
 )
 
 const (
@@ -23,6 +25,13 @@ func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	c.mu.Lock()
 	defer c.mu.Unlock()
+
+	fmt.Fprintln(w, "# HELP mtr_report_duration_seconds duration of last mtr run (in seconds)")
+	fmt.Fprintln(w, "# TYPE mtr_report_duration_seconds gauge")
+	fmt.Fprintln(w, "# HELP mtr_report_count_hubs number of hops visited in the last mtr run")
+	fmt.Fprintln(w, "# TYPE mtr_report_count_hubs gauge")
+
+	mtr.WriteMetricsHelpType(w)
 
 	if len(c.jobs) == 0 {
 		fmt.Fprintln(w, "# no mtr jobs defined (yet).")
@@ -48,12 +57,22 @@ func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		labels["mtr_exporter_job"] = job.Label
 		tsMs := ts.UnixNano() / int64(time.Millisecond)
 
-		fmt.Fprintf(w, "# mtr run: %s\n", ts.Format(time.RFC3339Nano))
+		fmt.Fprintf(w, "# mtr run %s: %s\n", job.Label, ts.Format(time.RFC3339Nano))
 		// FIXME: remove or rewrite: fmt.Fprintf(w, "# cmdline: %s\n", job.cmdLine)
+
+		l := labels2Prom(labels)
+
+		// FIXME: remove deprecated metrics with mtr-exporter:0.4
+		fmt.Fprintf(w, "mtr_report_duration_seconds{%s} %f %d\n",
+			l, float64(d)/float64(time.Second), tsMs)
+		fmt.Fprintln(w, "# deprecated metric name, use mtr_report_duration_seconds")
 		fmt.Fprintf(w, "mtr_report_duration_ms_gauge{%s} %d %d\n",
-			labels2Prom(labels), d/time.Millisecond, tsMs)
+			l, d/time.Millisecond, tsMs)
+		fmt.Fprintf(w, "mtr_report_count_hubs{%s} %d %d\n",
+			l, len(report.Hubs), tsMs)
+		fmt.Fprintln(w, "# deprecated metric, use mtr_report_count_hubs")
 		fmt.Fprintf(w, "mtr_report_count_hubs_gauge{%s} %d %d\n",
-			labels2Prom(labels), len(report.Hubs), tsMs)
+			l, len(report.Hubs), tsMs)
 
 		for i, hub := range report.Hubs {
 			labels["host"] = hub.Host
