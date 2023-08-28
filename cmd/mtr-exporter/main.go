@@ -27,6 +27,7 @@ func main() {
 	doPrintVersion := flag.Bool("version", false, "show version")
 	doPrintUsage := flag.Bool("h", false, "show help")
 	doTimeStampLogs := flag.Bool("tslogs", false, "use timestamps in logs")
+	doRenderDeprecatedMetrics := flag.Bool("flag.deprecatedMetrics", false, "show deprecated metrics")
 
 	flag.Usage = usage
 	flag.Parse()
@@ -43,8 +44,9 @@ func main() {
 		log.SetFlags(log.LstdFlags | log.LUTC)
 	}
 
-	collector := job.NewCollector()
 	scheduler := cron.New()
+	collector := job.NewCollector()
+	collector.SetRenderDeprecatedMetrics(*doRenderDeprecatedMetrics)
 
 	if len(flag.Args()) > 0 {
 		j := job.NewJob(*mtrBin, flag.Args(), *schedule)

@@ -9,6 +9,9 @@ func usage() {
 FLAGS:
 -bind       <bind-address>
             bind address (default ":8080")
+-flag.deprecatedMetrics
+            render deprecated metrics (default: false)
+            helps with transition time until deprecated metrics are gone
 -h          
             show help
 -jobs       <path-to-jobsfile>

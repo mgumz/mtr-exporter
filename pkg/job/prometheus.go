@@ -64,24 +64,30 @@ func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// FIXME: remove deprecated metrics with mtr-exporter:0.4
 		fmt.Fprintf(w, "mtr_report_duration_seconds{%s} %f %d\n",
 			l, float64(d)/float64(time.Second), tsMs)
-		fmt.Fprintln(w, "# deprecated metric name, use mtr_report_duration_seconds")
-		fmt.Fprintf(w, "mtr_report_duration_ms_gauge{%s} %d %d\n",
-			l, d/time.Millisecond, tsMs)
+
+		if c.opts.doRenderDeprecatedMetrics {
+			fmt.Fprintln(w, "# deprecated metric name, use mtr_report_duration_seconds")
+			fmt.Fprintf(w, "mtr_report_duration_ms_gauge{%s} %d %d\n",
+				l, d/time.Millisecond, tsMs)
+		}
 		fmt.Fprintf(w, "mtr_report_count_hubs{%s} %d %d\n",
 			l, len(report.Hubs), tsMs)
-		fmt.Fprintln(w, "# deprecated metric, use mtr_report_count_hubs")
-		fmt.Fprintf(w, "mtr_report_count_hubs_gauge{%s} %d %d\n",
-			l, len(report.Hubs), tsMs)
+
+		if c.opts.doRenderDeprecatedMetrics {
+			fmt.Fprintln(w, "# deprecated metric, use mtr_report_count_hubs")
+			fmt.Fprintf(w, "mtr_report_count_hubs_gauge{%s} %d %d\n",
+				l, len(report.Hubs), tsMs)
+		}
 
 		for i, hub := range report.Hubs {
 			labels["host"] = hub.Host
 			labels["count"] = strconv.FormatInt(int64(hub.Count), integerBase)
 			// mark last hub to have it easily identified
 			if i < (len(report.Hubs) - 1) {
-				hub.WriteMetrics(w, labels2Prom(labels), tsMs)
+				hub.WriteMetrics(w, labels2Prom(labels), tsMs, c.opts.doRenderDeprecatedMetrics)
 			} else {
 				labels["last"] = "true"
-				hub.WriteMetrics(w, labels2Prom(labels), tsMs)
+				hub.WriteMetrics(w, labels2Prom(labels), tsMs, c.opts.doRenderDeprecatedMetrics)
 				delete(labels, "last")
 			}
 		}

@@ -8,10 +8,21 @@ type Collector struct {
 	jobs []JobMeta
 
 	mu sync.Mutex
+
+	opts collectorOpts
+}
+
+type collectorOpts struct {
+	doRenderDeprecatedMetrics bool
 }
 
 func NewCollector() *Collector {
 	return new(Collector)
+}
+
+func (c *Collector) SetRenderDeprecatedMetrics(f bool) *Collector {
+	c.opts.doRenderDeprecatedMetrics = f
+	return c
 }
 
 func (c *Collector) RemoveJob(label string) bool {
@@ -44,7 +55,7 @@ func (c *Collector) AddJob(job JobMeta) bool {
 			return false
 		}
 	}
-    c.jobs = append(c.jobs, job)
+	c.jobs = append(c.jobs, job)
 
 	return true
 }
