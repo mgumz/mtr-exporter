@@ -79,17 +79,22 @@ func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				l, len(report.Hubs), tsMs)
 		}
 
+		lh := len(report.Hubs) - 1
 		for i, hub := range report.Hubs {
 			labels["host"] = hub.Host
 			labels["count"] = strconv.FormatInt(int64(hub.Count), integerBase)
-			// mark last hub to have it easily identified
-			if i < (len(report.Hubs) - 1) {
-				hub.WriteMetrics(w, labels2Prom(labels), tsMs, c.opts.doRenderDeprecatedMetrics)
-			} else {
+			labels["hop"] = hopLabel(i, lh)
+
+			// "last" as label is redundant with `hop="last"`, but
+			// also an existing label since mtr-exporter:0.1.0:
+			// lets keep it for now.
+			if i == lh {
 				labels["last"] = "true"
-				hub.WriteMetrics(w, labels2Prom(labels), tsMs, c.opts.doRenderDeprecatedMetrics)
-				delete(labels, "last")
 			}
+
+			hub.WriteMetrics(w, labels2Prom(labels), tsMs, c.opts.doRenderDeprecatedMetrics)
+
+			delete(labels, "last")
 		}
 	}
 
@@ -102,4 +107,17 @@ func labels2Prom(labels map[string]string) string {
 	}
 	sl.Sort()
 	return strings.Join(sl, ",")
+}
+
+func hopLabel(i, last int) string {
+
+	if i == last {
+		if i == 0 {
+			return "first_last"
+		}
+		return "last"
+	} else if i == 0 {
+		return "first"
+	}
+	return "intermediate"
 }
