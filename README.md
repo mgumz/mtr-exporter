@@ -25,15 +25,20 @@ Usually, [mtr] is producing the following output:
     # cmdline: /usr/local/sbin/mtr -j -c 2 -n example.com
     mtr_report_duration_ms_gauge{bitpattern="0x00",dst="example.com",psize="64",src="src.example.com",tests="2",tos="0x0"} 7179 1583685425000
     mtr_report_count_hubs_gauge{bitpattern="0x00",dst="example.com",psize="64",src="src.example.com",tests="2",tos="0x0"} 10 1583685425000
-    mtr_report_loss_gauge{bitpattern="0x00",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.000000 1583685425000
-    mtr_report_snt_gauge{bitpattern="0x00",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 2 1583685425000
-    mtr_report_last_gauge{bitpattern="0x00",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.380000 1583685425000
-    mtr_report_avg_gauge{bitpattern="0x00",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.480000 1583685425000
-    mtr_report_best_gauge{bitpattern="0x00",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.380000 1583685425000
-    mtr_report_wrst_gauge{bitpattern="0x00",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.570000 1583685425000
-    mtr_report_stdev_gauge{bitpattern="0x00",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.130000 1583685425000
+    mtr_report_loss_gauge{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.000000 1583685425000
+    mtr_report_snt_gauge{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 2 1583685425000
+    mtr_report_last_gauge{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.380000 1583685425000
+    mtr_report_avg_gauge{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.480000 1583685425000
+    mtr_report_best_gauge{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.380000 1583685425000
+    mtr_report_wrst_gauge{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.570000 1583685425000
+    mtr_report_stdev_gauge{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.130000 1583685425000
 
-The last hop in the list of tested hosts contains the label `"last"="true"`.
+Each hop gets a label `"hop"="first"`, `"hop"="last"`, `"hop"="first_last"` or
+`"hop"="intermediate"`, depending where on the path to the destination the hop
+is. 
+
+Legacy: the last hop in the list of tested hosts contains the label `"last"="true"`.
+Use `hop=~".*last"` in your Prometheus queries to achieve the same.
 
 When [prometheus] scrapes the data, you can visualise the observed values:
 
@@ -51,7 +56,7 @@ When [prometheus] scrapes the data, you can visualise the observed values:
     -flag.deprecatedMetrics
                 render deprecated metrics (default: false)
                 helps with transition time until deprecated metrics are gone
-    -h          
+    -h
                 show help
     -jobs       <path-to-jobsfile>
                 file describing multiple mtr-jobs. syntax is given below.
@@ -66,7 +71,7 @@ When [prometheus] scrapes the data, you can visualise the observed values:
                    @hourly       - run once per hour
                    10 * * * *    - execute 10 minutes after the full hour
                 see https://en.wikipedia.org/wiki/Cron
-    -tslogs     
+    -tslogs
                 use timestamps in logs
     -watch-jobs <schedule>
                 periodically watch the file defined via -jobs (default: "")
@@ -111,7 +116,7 @@ Runtime:
 
 Build:
 
-* golang-1.13 and newer
+* golang-1.21 and newer
 
 ## Building
 

@@ -1,4 +1,12 @@
 
+## Changelog for mtr-exporter 0.4.0 (TBD)
+
+Features:
+
+* add label 'hop' for the 'first', 'last' and
+  'intermediate' hops towards the traced destination
+
+
 ## Changelog for mtr-exporter 0.3.0 (2023-08-28)
 
 Features:
