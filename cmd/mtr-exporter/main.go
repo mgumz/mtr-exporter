@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/mgumz/mtr-exporter/pkg/job"
 
@@ -18,39 +19,34 @@ import (
 func main() {
 	log.SetFlags(0)
 
-	mtrBin := flag.String("mtr", "mtr", "path to `mtr` binary")
-	jobLabel := flag.String("label", "mtr-exporter-cli", "job label")
-	bind := flag.String("bind", ":8080", "bind address")
-	jobFile := flag.String("jobs", "", "file containing job definitions")
-	schedule := flag.String("schedule", "@every 60s", "schedule at which often `mtr` is launched")
-	doWatchJobsFile := flag.String("watch-jobs", "", "re-parse -jobs file to schedule")
-	doPrintVersion := flag.Bool("version", false, "show version")
-	doPrintUsage := flag.Bool("h", false, "show help")
-	doTimeStampLogs := flag.Bool("tslogs", false, "use timestamps in logs")
-	doRenderDeprecatedMetrics := flag.Bool("flag.deprecatedMetrics", false, "show deprecated metrics")
-
+	mtef := newFlags()
 	flag.Usage = usage
 	flag.Parse()
 
-	if *doPrintVersion {
+	if mtef.doPrintVersion {
 		printVersion()
 		return
 	}
-	if *doPrintUsage {
+	if mtef.doPrintUsage {
 		flag.Usage()
 		return
 	}
-	if *doTimeStampLogs {
+	if mtef.doTimeStampLogs {
 		log.SetFlags(log.LstdFlags | log.LUTC)
 	}
 
-	scheduler := cron.New()
+	scheduler := cron.New(
+		cron.WithLocation(time.UTC),
+		cron.WithChain(
+			cron.SkipIfStillRunning(cron.DiscardLogger),
+		),
+	)
 	collector := job.NewCollector()
-	collector.SetRenderDeprecatedMetrics(*doRenderDeprecatedMetrics)
+	collector.SetRenderDeprecatedMetrics(mtef.doRenderDeprecatedMetrics)
 
 	if len(flag.Args()) > 0 {
-		j := job.NewJob(*mtrBin, flag.Args(), *schedule)
-		j.Label = *jobLabel
+		j := job.NewJob(mtef.mtrBin, flag.Args(), mtef.schedule)
+		j.Label = mtef.jobLabel
 		if _, err := scheduler.AddJob(j.Schedule, j); err != nil {
 			log.Printf("error: unable to add %q to scheduler: %v", j.Label, err)
 			os.Exit(1)
@@ -62,14 +58,14 @@ func main() {
 		j.UpdateFn = func(meta job.JobMeta) bool { return collector.UpdateJob(meta) }
 	}
 
-	if *jobFile != "" {
-		if *doWatchJobsFile != "" {
-			log.Printf("info: watching %q at %q", *jobFile, *doWatchJobsFile)
-			job.WatchJobsFile(*jobFile, *mtrBin, *doWatchJobsFile, collector)
+	if mtef.jobFile != "" {
+		if mtef.doWatchJobsFile != "" {
+			log.Printf("info: watching %q at %q", mtef.jobFile, mtef.doWatchJobsFile)
+			job.WatchJobsFile(mtef.jobFile, mtef.mtrBin, mtef.doWatchJobsFile, collector)
 		} else {
-			jobs, _, err := job.ParseJobFile(*jobFile, *mtrBin)
+			jobs, _, err := job.ParseJobFile(mtef.jobFile, mtef.mtrBin)
 			if err != nil {
-				log.Printf("error: parsing jobs file %q: %s", *jobFile, err)
+				log.Printf("error: parsing jobs file %q: %s", mtef.jobFile, err)
 				os.Exit(1)
 			}
 			if jobs.Empty() {
@@ -96,6 +92,6 @@ func main() {
 		fmt.Fprintf(w, "OK")
 	})
 
-	log.Println("serving /metrics at", *bind, "...")
-	log.Fatal(http.ListenAndServe(*bind, nil))
+	log.Println("serving /metrics at", mtef.bindAddr, "...")
+	log.Fatal(http.ListenAndServe(mtef.bindAddr, nil))
 }
