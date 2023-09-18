@@ -66,9 +66,9 @@ func (job *Job) Launch() error {
 	}
 
 	// copy the report into the job
-	job.Report = report
-	job.Launched = launched
-	job.Duration = duration
+	job.JobMeta.Report = report
+	job.JobMeta.Launched = launched
+	job.JobMeta.Duration = duration
 
 	if job.UpdateFn != nil {
 		job.UpdateFn(job.JobMeta)

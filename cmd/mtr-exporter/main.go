@@ -35,27 +35,15 @@ func main() {
 		log.SetFlags(log.LstdFlags | log.LUTC)
 	}
 
-	scheduler := cron.New(
-		cron.WithLocation(time.UTC),
-		cron.WithChain(
-			cron.SkipIfStillRunning(cron.DiscardLogger),
-		),
-	)
 	collector := job.NewCollector()
 	collector.SetRenderDeprecatedMetrics(mtef.doRenderDeprecatedMetrics)
+
+	jobs := job.Jobs{}
 
 	if len(flag.Args()) > 0 {
 		j := job.NewJob(mtef.mtrBin, flag.Args(), mtef.schedule)
 		j.Label = mtef.jobLabel
-		if _, err := scheduler.AddJob(j.Schedule, j); err != nil {
-			log.Printf("error: unable to add %q to scheduler: %v", j.Label, err)
-			os.Exit(1)
-		}
-		if !collector.AddJob(j.JobMeta) {
-			log.Printf("error: unable to add %q to collector", j.Label)
-			os.Exit(1)
-		}
-		j.UpdateFn = func(meta job.JobMeta) bool { return collector.UpdateJob(meta) }
+		jobs = append(jobs, j)
 	}
 
 	if mtef.jobFile != "" {
@@ -63,29 +51,33 @@ func main() {
 			log.Printf("info: watching %q at %q", mtef.jobFile, mtef.doWatchJobsFile)
 			job.WatchJobsFile(mtef.jobFile, mtef.mtrBin, mtef.doWatchJobsFile, collector)
 		} else {
-			jobs, _, err := job.ParseJobFile(mtef.jobFile, mtef.mtrBin)
+			jobsFromFile, _, err := job.ParseJobFile(mtef.jobFile, mtef.mtrBin)
 			if err != nil {
 				log.Printf("error: parsing jobs file %q: %s", mtef.jobFile, err)
 				os.Exit(1)
 			}
-			if jobs.Empty() {
-				log.Println("error: no mtr jobs defined - provide at least one via -file or via arguments")
-				os.Exit(1)
-			}
-			for _, j := range jobs {
-				if collector.AddJob(j.JobMeta) {
-					if _, err := scheduler.AddJob(j.Schedule, j); err != nil {
-						log.Printf("error: unable to add %q to collector: %v", j.Label, err)
-						os.Exit(1)
-					}
-					j.UpdateFn = func(meta job.JobMeta) bool { return collector.UpdateJob(meta) }
-				} // FIXME: log failed addition to collector, most likely
-				// due to duplicate label
+			if !jobsFromFile.Empty() {
+				jobs = append(jobs, jobsFromFile...)
 			}
 		}
 	}
 
-	scheduler.Start()
+	if jobs.Empty() {
+		log.Println("error: no mtr jobs defined - provide at least one via -file or via arguments")
+		os.Exit(1)
+	}
+
+	scheduler := cron.New(
+		cron.WithLocation(time.UTC),
+		cron.WithChain(
+			cron.SkipIfStillRunning(cron.DiscardLogger),
+		),
+	)
+
+	if err := jobs.ReSchedule(scheduler, collector); err != nil {
+		log.Printf("error: %v", err)
+		os.Exit(1)
+	}
 
 	http.Handle("/metrics", collector)
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
