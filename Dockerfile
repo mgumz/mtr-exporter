@@ -14,7 +14,7 @@ ARG     VERSION=latest
 
 ADD     . /src/mtr-exporter
 RUN     apk add -U --no-cache make git
-RUN     make -C /src/mtr-exporter bin/mtr-exporter-$VERSION.$TARGETOS.$TARGETARCH
+RUN     make LDFLAGS="-ldflags -w" -C /src/mtr-exporter bin/mtr-exporter-$VERSION.$TARGETOS.$TARGETARCH
 
 ##
 ## -- runtime environment
