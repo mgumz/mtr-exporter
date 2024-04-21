@@ -22,7 +22,7 @@ RUN     make LDFLAGS="-ldflags -w" -C /src/mtr-exporter bin/mtr-exporter-$VERSIO
 
 FROM    alpine:3.19 AS rt-env
 
-RUN     apk add -U --no-cache mtr tini
+RUN     apk add -U --no-cache mtr tini && apk del apk-tools libc-utils
 COPY    --from=build-env /src/mtr-exporter/bin/* /usr/bin/mtr-exporter
 
 EXPOSE  8080
