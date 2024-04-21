@@ -22,8 +22,9 @@ RUN     make -C /src/mtr-exporter bin/mtr-exporter-$VERSION.$TARGETOS.$TARGETARC
 
 FROM    alpine:3.19 AS rt-env
 
-RUN     apk add -U --no-cache mtr
+RUN     apk add -U --no-cache mtr tini
 COPY    --from=build-env /src/mtr-exporter/bin/* /usr/bin/mtr-exporter
 
 EXPOSE  8080
-ENTRYPOINT ["/usr/bin/mtr-exporter"]
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD     ["/usr/bin/mtr-exporter"]
