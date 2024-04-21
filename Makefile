@@ -18,7 +18,7 @@ RELEASES=$(subst windows.amd64.tar.gz,windows.amd64.zip,$(foreach r,$(subst .exe
 
 LDFLAGS=$(LDFLAGS) -ldflags "-X main.Version=$(VERSION) -X main.BuildDate=$(BUILD_DATE) -X main.GitHash=$(GIT_HASH)"
 
-$(PROJECT): 
+$(PROJECT):
 	go build -v -o $@ ./cmd/$(PROJECT)
 
 ######################################################
@@ -37,7 +37,9 @@ bin/$(PROJECT): cmd/$(PROJECT) bin
 	go build -v -o $@ ./$<
 
 bin/$(PROJECT)-$(VERSION).%:
-	env GOARCH=$(subst .,,$(suffix $(subst .exe,,$@))) GOOS=$(subst .,,$(suffix $(basename $(subst .exe,,$@)))) CGO_ENABLED=0 \
+	env GOARCH=$(subst .,,$(suffix $(subst .exe,,$@))) \
+	   GOOS=$(subst .,,$(suffix $(basename $(subst .exe,,$@)))) \
+		CGO_ENABLED=0 \
 	go build $(LDFLAGS) -o $@ ./cmd/$(PROJECT)
 
 releases/mtr-exporter-$(VERSION).%.zip: bin/$(PROJECT)-$(VERSION).%.exe
