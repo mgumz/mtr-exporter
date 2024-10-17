@@ -1,0 +1,43 @@
+name: Build on tags
+
+on:
+  push:
+    tags: [ '*']
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    #--- Set permissions to ephemeral GITHUB_TOKEN for job actions
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout and download repository to workflow runner
+        uses: actions/checkout@v3
+
+      - name: Set up docker buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to github container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image to github container registry
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: Containerfile
+          push: true
+          platforms: "linux/amd64"
+          build-args: |
+             VERSION=${{github.ref_name}}
+          tags:  "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{github.ref_name}}"
