@@ -57,7 +57,7 @@ bin:
 
 container-image:
 	env DOCKER_BUILDKIT=1 docker build \
-		--file Dockerfile \
+		--file Containerfile \
 		--platform=$(CONTAINER_PLATFORM) \
 		--build-arg VERSION=$(VERSION) \
 		--tag $(CONTAINER_PLATFORM)-$(PROJECT):$(VERSION) .
