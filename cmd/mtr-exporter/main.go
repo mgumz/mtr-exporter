@@ -36,7 +36,6 @@ func main() {
 	}
 
 	collector := job.NewCollector()
-	collector.SetRenderDeprecatedMetrics(mtef.doRenderDeprecatedMetrics)
 
 	jobs := job.Jobs{}
 

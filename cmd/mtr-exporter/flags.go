@@ -13,7 +13,6 @@ type mteFlags struct {
 	doPrintVersion            bool
 	doPrintUsage              bool
 	doTimeStampLogs           bool
-	doRenderDeprecatedMetrics bool
 }
 
 func newFlags() *mteFlags {
@@ -29,7 +28,6 @@ func newFlags() *mteFlags {
 	flag.BoolVar(&mte.doPrintUsage, "version", false, "show version")
 	flag.BoolVar(&mte.doPrintUsage, "h", false, "show help")
 	flag.BoolVar(&mte.doTimeStampLogs, "tslogs", false, "use timestamps in logs")
-	flag.BoolVar(&mte.doTimeStampLogs, "flag.deprecatedMetrics", false, "show deprecated metrics")
 
 	return mte
 }

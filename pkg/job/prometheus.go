@@ -61,23 +61,11 @@ func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		l := labels2Prom(labels)
 
-		// FIXME: remove deprecated metrics with mtr-exporter:0.4
 		fmt.Fprintf(w, "mtr_report_duration_seconds{%s} %f %d\n",
 			l, float64(d)/float64(time.Second), tsMs)
 
-		if c.opts.doRenderDeprecatedMetrics {
-			fmt.Fprintln(w, "# deprecated metric name, use mtr_report_duration_seconds")
-			fmt.Fprintf(w, "mtr_report_duration_ms_gauge{%s} %d %d\n",
-				l, d/time.Millisecond, tsMs)
-		}
 		fmt.Fprintf(w, "mtr_report_count_hubs{%s} %d %d\n",
 			l, len(report.Hubs), tsMs)
-
-		if c.opts.doRenderDeprecatedMetrics {
-			fmt.Fprintln(w, "# deprecated metric, use mtr_report_count_hubs")
-			fmt.Fprintf(w, "mtr_report_count_hubs_gauge{%s} %d %d\n",
-				l, len(report.Hubs), tsMs)
-		}
 
 		lh := len(report.Hubs) - 1
 		for i, hub := range report.Hubs {
@@ -92,7 +80,7 @@ func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				labels["last"] = "true"
 			}
 
-			hub.WriteMetrics(w, labels2Prom(labels), tsMs, c.opts.doRenderDeprecatedMetrics)
+			hub.WriteMetrics(w, labels2Prom(labels), tsMs)
 
 			delete(labels, "last")
 		}
