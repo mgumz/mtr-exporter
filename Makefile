@@ -1,5 +1,5 @@
 PROJECT=mtr-exporter
-VERSION=$(shell cat VERSION)
+VERSION?=$(shell cat VERSION)
 BUILD_DATE=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 GIT_HASH=$(shell git rev-parse HEAD)
 CONTAINER_PLATFORM?=linux/amd64
@@ -16,7 +16,7 @@ TARGETS=linux.amd64 	\
 BINARIES=$(addprefix bin/$(PROJECT)-$(VERSION)., $(TARGETS))
 RELEASES=$(subst windows.amd64.tar.gz,windows.amd64.zip,$(foreach r,$(subst .exe,,$(TARGETS)),releases/$(PROJECT)-$(VERSION).$(r).tar.gz))
 
-LDFLAGS=$(LDFLAGS) -ldflags "-X main.Version=$(VERSION) -X main.BuildDate=$(BUILD_DATE) -X main.GitHash=$(GIT_HASH)"
+LDFLAGS:=$(LDFLAGS) -ldflags "-X main.Version=$(VERSION) -X main.BuildDate=$(BUILD_DATE) -X main.GitHash=$(GIT_HASH)"
 
 $(PROJECT):
 	go build -v -o $@ ./cmd/$(PROJECT)
@@ -36,9 +36,9 @@ $(PROJECT): bin/$(PROJECT)
 bin/$(PROJECT): cmd/$(PROJECT) bin
 	go build -v -o $@ ./$<
 
-bin/$(PROJECT)-$(VERSION).%:
+bin/$(PROJECT)-$(VERSION)%:
 	env GOARCH=$(subst .,,$(suffix $(subst .exe,,$@))) \
-	   GOOS=$(subst .,,$(suffix $(basename $(subst .exe,,$@)))) \
+		GOOS=$(subst .,,$(suffix $(basename $(subst .exe,,$@)))) \
 		CGO_ENABLED=0 \
 	go build $(LDFLAGS) -o $@ ./cmd/$(PROJECT)
 
