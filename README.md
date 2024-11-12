@@ -128,6 +128,10 @@ One-off building and "installation":
 
     $> go install github.com/mgumz/mtr-exporter/cmd/mtr-exporter@latest
 
+## OCI Images
+
+OCI images for `linux/amd64` platform are available for recent releases under https://github.com/mgumz/mtr-exporter/pkgs/container/mtr-exporter
+
 ## License
 
 see LICENSE file
