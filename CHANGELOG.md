@@ -1,10 +1,29 @@
 
-## Changelog for mtr-exporter 0.4.0 (TBD)
+## Changelog for mtr-exporter 0.4.0 (2024-11-25)
 
 Features:
 
 * add label 'hop' for the 'first', 'last' and
   'intermediate' hops towards the traced destination
+
+Maintenance:
+
+As announced with mtr-exporter 0.3.0, the following deprecated
+metrics are removed:
+
+| deprecated                   |
+| ---------------------------- |
+| mtr_report_duration_ms_gauge |
+| mtr_report_count_hubs_gauge  |
+| mtr_report_snt_gauge         |
+| mtr_report_loss_gauge        |
+| mtr_report_best_gauge        |
+| mtr_report_wrst_gauge        |
+| mtr_report_avg_gauge         |
+| mtr_report_last_gauge        |
+| mtr_report_stdev_gauge       |
+
+Also, `-flag.deprecatedMetrics` is removed.
 
 
 ## Changelog for mtr-exporter 0.3.0 (2023-08-28)
@@ -18,7 +37,7 @@ Features:
   (<=mtr:0.93, >=mtr:0.94 differ)
 
 * add -flag.deprecatedMetrics to render deprecated metrics.
-  helps with transition time until deprecated metrics are 
+  helps with transition time until deprecated metrics are
   gone
 
 Improvements:
