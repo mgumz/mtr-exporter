@@ -132,6 +132,10 @@ One-off building and "installation":
 
 OCI images for `linux/amd64` platform are available for recent releases under https://github.com/mgumz/mtr-exporter/pkgs/container/mtr-exporter
 
+## Helm Charts
+
+- https://github.com/clavinjune/helm-charts/tree/main/charts/mtr-exporter
+
 ## License
 
 see LICENSE file
