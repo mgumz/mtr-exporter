@@ -26,5 +26,4 @@ RUN     apk add -U --no-cache mtr tini && apk del apk-tools libc-utils
 COPY    --from=build-env /src/mtr-exporter/bin/* /usr/bin/mtr-exporter
 
 EXPOSE  8080
-ENTRYPOINT ["/sbin/tini", "--"]
-CMD     ["/usr/bin/mtr-exporter"]
+ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/mtr-exporter"]
