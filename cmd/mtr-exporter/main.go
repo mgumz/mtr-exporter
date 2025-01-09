@@ -45,10 +45,13 @@ func main() {
 		jobs = append(jobs, j)
 	}
 
+	jobsAvailable := jobs.Empty()
+
 	if mtef.jobFile != "" {
 		if mtef.doWatchJobsFile != "" {
 			log.Printf("info: watching %q at %q", mtef.jobFile, mtef.doWatchJobsFile)
 			job.WatchJobsFile(mtef.jobFile, mtef.mtrBin, mtef.doWatchJobsFile, collector)
+			jobsAvailable = true
 		} else {
 			jobsFromFile, _, err := job.ParseJobFile(mtef.jobFile, mtef.mtrBin)
 			if err != nil {
@@ -57,11 +60,12 @@ func main() {
 			}
 			if !jobsFromFile.Empty() {
 				jobs = append(jobs, jobsFromFile...)
+				jobsAvailable = true
 			}
 		}
 	}
 
-	if jobs.Empty() {
+	if !jobsAvailable {
 		log.Println("error: no mtr jobs defined - provide at least one via -file or via arguments")
 		os.Exit(1)
 	}
