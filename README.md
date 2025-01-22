@@ -2,7 +2,7 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/mgumz/mtr-exporter)](https://goreportcard.com/report/github.com/mgumz/mtr-exporter)
 
-*mtr-exporter* periodically executes [mtr] to a given host and provides the
+**mtr-exporter** periodically executes [mtr] to a given host and provides the
 measured results as [prometheus] metrics.
 
 Usually, [mtr] is producing the following output:
@@ -82,6 +82,9 @@ When [prometheus] scrapes the data, you can visualise the observed values:
     MTR-FLAGS:
             see "man mtr" for valid flags to mtr.
 
+Since [mtr] itself supports the environment variable `MTR_OPTIONS`, you can
+also use it to specify common options for all the launched [mtr] instances
+
 At `/metrics` the measured values of the last run are exposed.
 
 ### Examples
@@ -101,6 +104,14 @@ At `/metrics` the measured values of the last run are exposed.
     # comment lines start with '#' are ignored
     # empty lines are ignored as well
     label -- <schedule> -- mtr-flags
+
+`<schedule>` - a schedule expression which follows one of
+
+* `* * * * *` - a cron expression, see https://en.wikipedia.org/wiki/Cron
+* `@hourly` | `@daily` etc - see https://pkg.go.dev/github.com/robfig/cron/v3#hdr-Predefined_schedules
+* `@every <duration>` - execute [mtr] in an interval
+
+* `@every <duration> unless finished`
 
 Example:
 
@@ -130,7 +141,8 @@ One-off building and "installation":
 
 ## OCI Images
 
-OCI images for `linux/amd64` platform are available for recent releases under https://github.com/mgumz/mtr-exporter/pkgs/container/mtr-exporter
+OCI images for `linux/amd64` platform are available for recent releases under
+https://github.com/mgumz/mtr-exporter/pkgs/container/mtr-exporter
 
 Make sure to preserve the ENTRY command to benefit from the default [krallin/tini](s://github.com/krallin/tini) zombie. In kubernetes, this translates into omiting the `command` and only specifying `args` for passing mtr-exporter
 
