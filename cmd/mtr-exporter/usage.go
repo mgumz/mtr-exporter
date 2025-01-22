@@ -9,10 +9,7 @@ func usage() {
 FLAGS:
 -bind       <bind-address>
             bind address (default ":8080")
--flag.deprecatedMetrics
-            render deprecated metrics (default: false)
-            helps with transition time until deprecated metrics are gone
--h          
+-h
             show help
 -jobs       <path-to-jobsfile>
             file describing multiple mtr-jobs. syntax is given below.
@@ -27,7 +24,7 @@ FLAGS:
                @hourly       - run once per hour
                10 * * * *    - execute 10 minutes after the full hour
             see https://en.wikipedia.org/wiki/Cron
--tslogs     
+-tslogs
             use timestamps in logs
 -watch-jobs <schedule>
             periodically watch the file defined via -jobs (default: "")
@@ -38,7 +35,7 @@ FLAGS:
 
 MTR-FLAGS:
 see "man mtr" for valid flags to mtr.
-	
+
 Examples:
 
 $> mtr-exporter -- example.com
