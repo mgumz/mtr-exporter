@@ -33,11 +33,10 @@ func NewJob(mtr string, args []string, schedule string) *Job {
 		"-j", // json output
 	}
 	args = append(extra, args...)
-	cmd := exec.Command(mtr, args...)
 	job := Job{
 		args:      args,
 		mtrBinary: mtr,
-		cmdLine:   strings.Join(cmd.Args, " "),
+		cmdLine:   strings.Join(append([]string{mtr}, args...), " "),
 	}
 	job.JobMeta.Schedule = schedule
 	job.JobMeta.CmdLine = job.cmdLine
