@@ -132,6 +132,29 @@ One-off building and "installation":
 
 OCI images for `linux/amd64` platform are available for recent releases under https://github.com/mgumz/mtr-exporter/pkgs/container/mtr-exporter
 
+Make sure to preserve the ENTRY command to benefit from the default [krallin/tini](s://github.com/krallin/tini) zombie. In kubernetes, this translates into omiting the `command` and only specifying `args` for passing mtr-exporter
+
+```yaml
+      containers:
+        - name: mtr-prometheus-collector
+          image: ghcr.io/mgumz/mtr-exporter:0.4.0
+
+          # Note: We need to override the container entry point which is an array ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/mtr-exporter"]
+          # Only the fist element end up in the container `command`, and the two others end up in the default `args` value
+          # See sources at https://github.com/mgumz/mtr-exporter/blob/fd2834d5269afebfc0cd2c269a8bb26d8d816a0c/Containerfile#L29C1-L29C57
+          command:
+            # use tini to automatically reap zombie mtr and mtr-packet processes. See https://github.com/mgumz/mtr-exporter/issues/24#issuecomment-2581077241
+            - "/sbin/tini"
+            - "--"
+            - "/usr/bin/mtr-exporter"
+            # default schedule is every 60 seconds
+            - "-schedule"
+            - "@every 5m"
+            - "--"
+            - "example.com"
+```
+
+
 ## License
 
 see LICENSE file
