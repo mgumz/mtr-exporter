@@ -17,8 +17,9 @@ type Result struct {
 }
 
 type Report struct {
-	Mtr  Mtr   `json:"mtr"`
-	Hubs []Hub `json:"hubs"`
+	Mtr      Mtr    `json:"mtr"`
+	Hubs     []Hub  `json:"hubs"`
+	ErrorMsg string // carrying the error message of mtr
 }
 
 type Mtr struct {

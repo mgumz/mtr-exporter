@@ -1,6 +1,7 @@
 package job
 
 import (
+	"fmt"
 	"log"
 )
 
@@ -12,6 +13,11 @@ func (job *Job) Run() {
 		log.Printf("info: %q failed: %s", job.Label, err)
 		return
 	}
-	log.Printf("info: %q done: %d hops in %s.", job.Label,
-		len(job.Report.Hubs), job.Duration)
+
+	errMsg := ""
+	if job.Report.ErrorMsg != "" {
+		errMsg = fmt.Sprintf("(err: %q)", job.Report.ErrorMsg)
+	}
+	log.Printf("info: %q done%s: %d hops in %s.", job.Label,
+		errMsg, len(job.Report.Hubs), job.Duration)
 }
