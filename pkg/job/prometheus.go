@@ -26,6 +26,8 @@ func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
+	fmt.Fprintln(w, "# HELP mtr_runs_total number of mtr runs")
+	fmt.Fprintln(w, "# TYPE mtr_runs_total counter")
 	fmt.Fprintln(w, "# HELP mtr_report_duration_seconds duration of last mtr run (in seconds)")
 	fmt.Fprintln(w, "# TYPE mtr_report_duration_seconds gauge")
 	fmt.Fprintln(w, "# HELP mtr_report_count_hubs number of hops visited in the last mtr run")
@@ -42,7 +44,7 @@ func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	for _, job := range c.jobs {
 
-		if len(job.Report.Hubs) == 0 {
+		if !job.DataAvailable() {
 			continue
 		}
 
@@ -57,15 +59,28 @@ func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		labels["mtr_exporter_job"] = job.Label
 		tsMs := ts.UnixNano() / int64(time.Millisecond)
 
-		fmt.Fprintf(w, "# mtr run %s: %s -- %s\n", job.Label, ts.Format(time.RFC3339Nano), job.CmdLine)
+		errMsg := ""
+		if report.ErrorMsg != "" {
+			errMsg = fmt.Sprintf(" # (err: %q)", report.ErrorMsg)
+		}
+		fmt.Fprintf(w, "# mtr run %s: %s -- %s%s\n", job.Label, ts.Format(time.RFC3339Nano), job.CmdLine, errMsg)
 
 		l := labels2Prom(labels)
+
+		for k, v := range job.Runs {
+			fmt.Fprintf(w, "mtr_runs_total{%s%s} %d %d\n",
+				l, fmt.Sprintf("error=%q", k), v, tsMs)
+		}
 
 		fmt.Fprintf(w, "mtr_report_duration_seconds{%s} %f %d\n",
 			l, float64(d)/float64(time.Second), tsMs)
 
 		fmt.Fprintf(w, "mtr_report_count_hubs{%s} %d %d\n",
 			l, len(report.Hubs), tsMs)
+
+		if len(job.Report.Hubs) == 0 {
+			continue
+		}
 
 		lh := len(report.Hubs) - 1
 		for i, hub := range report.Hubs {

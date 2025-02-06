@@ -144,6 +144,32 @@ func Test_MtrReportDecoding(t *testing.T) {
 	}
 }
 
+func Test_MtrEmptyHubs(t *testing.T) {
+	body := `
+	{
+   		"report": {
+        	"mtr": {
+            	"src": "example-src.test",
+             	"dst": "example-dst.invalid",
+              	"tos": 0,
+               	"tests": 10,
+                "psize": "64",
+                "bitpattern": "0x00"
+            },
+            "hubs": []
+        }
+    }`
+
+	report := &Report{}
+	if err := report.Decode(strings.NewReader(body)); err != nil {
+		t.Fatalf("error decoding: %s\n%s", err, body)
+	}
+
+	if len(report.Hubs) != 0 {
+		t.Fatalf("error: expected [] hubs, got %d", len(report.Hubs))
+	}
+}
+
 func Test_MtrJSONDecoding(t *testing.T) {
 
 	fixtures := []string{
