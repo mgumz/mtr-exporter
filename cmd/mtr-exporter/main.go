@@ -45,7 +45,7 @@ func main() {
 		jobs = append(jobs, j)
 	}
 
-	jobsAvailable := jobs.Empty()
+	jobsAvailable := !jobs.Empty()
 
 	if mtef.jobFile != "" {
 		if mtef.doWatchJobsFile != "" {
