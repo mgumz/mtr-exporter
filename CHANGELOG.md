@@ -1,3 +1,40 @@
+## Changelog for mtr-exporter 0.5.0 (2025-02-13)
+
+Features
+
+* Add `mtr_runs_total` metric: successful runs and failed runs
+  (which get label "error") are exposed. As a result, one can
+  check intermediate (or permanent) failures.
+
+  `sum by(mtr_exporter_job)(mtr_runs_total{})` - provides the
+  absolute number of `mtr` runs for each job
+
+  `sum by(mtr_exporter, error)(mtr_runs_total{error!=""})` - provides the
+  number of failed runs
+
+  The diff between these two is the amount of successful runs.
+
+  This implements GH#29, GH#30
+
+* Add small information page on "/", linking to /metrics and the project page.
+
+Bug Fixes:
+
+* Fix -watch-jobs - allow launching with zero given jobs, they might be
+  added later (fixes GH#22)
+* Fix picking up job file in a container / pod scenario (GH#20, thanks Clavin)
+* Remove -flag.deprecatedMetrics from "-h" output (fixes GH#26)
+* Fix logic bug for job(s) from command line
+* Fix printing the version when -version is given.
+
+Maintenance:
+
+* Improve documentation (thanks Guillaume)
+
+Contributors:
+
+* Guillaume Berche - https://github.com/gberche-orange
+* Clavianus Juneardo - https://github.com/clavinjune
 
 ## Changelog for mtr-exporter 0.4.0 (2024-11-25)
 

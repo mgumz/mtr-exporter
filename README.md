@@ -23,19 +23,20 @@ Usually, [mtr] is producing the following output:
 
     # mtr run: 2020-03-08T16:37:05.000377Z
     # cmdline: /usr/local/sbin/mtr -j -c 2 -n example.com
-    mtr_report_duration_ms_gauge{bitpattern="0x00",dst="example.com",psize="64",src="src.example.com",tests="2",tos="0x0"} 7179 1583685425000
-    mtr_report_count_hubs_gauge{bitpattern="0x00",dst="example.com",psize="64",src="src.example.com",tests="2",tos="0x0"} 10 1583685425000
-    mtr_report_loss_gauge{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.000000 1583685425000
-    mtr_report_snt_gauge{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 2 1583685425000
-    mtr_report_last_gauge{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.380000 1583685425000
-    mtr_report_avg_gauge{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.480000 1583685425000
-    mtr_report_best_gauge{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.380000 1583685425000
-    mtr_report_wrst_gauge{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.570000 1583685425000
-    mtr_report_stdev_gauge{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.130000 1583685425000
+    mtr_runs_total{bitpattern="0x00",dst="example.com",psize="64",src="src,example.com",tests="2",tos="0"} 13 1583685425000
+    mtr_report_duration_seconds{bitpattern="0x00",dst="example.com",psize="64",src="src.example.com",tests="2",tos="0x0"} 7.179 1583685425000
+    mtr_report_count_hubs{bitpattern="0x00",dst="example.com",psize="64",src="src.example.com",tests="2",tos="0x0"} 10 1583685425000
+    mtr_report_loss{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.000000 1583685425000
+    mtr_report_snt{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 2 1583685425000
+    mtr_report_last{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.380000 1583685425000
+    mtr_report_avg{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.480000 1583685425000
+    mtr_report_best{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.380000 1583685425000
+    mtr_report_wrst{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.570000 1583685425000
+    mtr_report_stdev{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.130000 1583685425000
 
 Each hop gets a label `"hop"="first"`, `"hop"="last"`, `"hop"="first_last"` or
 `"hop"="intermediate"`, depending where on the path to the destination the hop
-is. 
+is.
 
 Legacy: the last hop in the list of tested hosts contains the label `"last"="true"`.
 Use `hop=~".*last"` in your Prometheus queries to achieve the same.
@@ -144,18 +145,24 @@ One-off building and "installation":
 OCI images for `linux/amd64` platform are available for recent releases under
 https://github.com/mgumz/mtr-exporter/pkgs/container/mtr-exporter
 
-Make sure to preserve the ENTRY command to benefit from the default [krallin/tini](s://github.com/krallin/tini) zombie. In kubernetes, this translates into omiting the `command` and only specifying `args` for passing mtr-exporter
-
+Make sure to preserve the ENTRY command to benefit from the default
+[krallin/tini](s://github.com/krallin/tini) zombie. In kubernetes, this
+translates into omitting the `command` and only specifying `args` for passing
+mtr-exporter
 ```yaml
       containers:
         - name: mtr-prometheus-collector
           image: ghcr.io/mgumz/mtr-exporter:0.4.0
 
-          # Note: We need to override the container entry point which is an array ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/mtr-exporter"]
-          # Only the fist element end up in the container `command`, and the two others end up in the default `args` value
+          # Note: We need to override the container entry point which is an
+          # array ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/mtr-exporter"]
+          # Only the fist element end up in the container `command`, and the two
+          # others end up in the default `args` value
           # See sources at https://github.com/mgumz/mtr-exporter/blob/fd2834d5269afebfc0cd2c269a8bb26d8d816a0c/Containerfile#L29C1-L29C57
           command:
-            # use tini to automatically reap zombie mtr and mtr-packet processes. See https://github.com/mgumz/mtr-exporter/issues/24#issuecomment-2581077241
+            # use tini to automatically reap zombie mtr and mtr-packet
+            # processes. See
+            # https://github.com/mgumz/mtr-exporter/issues/24#issuecomment-2581077241
             - "/sbin/tini"
             - "--"
             - "/usr/bin/mtr-exporter"
