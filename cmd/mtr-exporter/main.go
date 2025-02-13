@@ -86,6 +86,18 @@ func main() {
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "OK")
 	})
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, `<!doctype html>
+	<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>mtr-exporter</title>
+	</head>
+	<body>
+		mtr-exporter - <a href="https://github.com/mgumz/mtr-exporter">https://github.com/mgumz/mtr-exporter<a><br>
+		see <a href="/metrics">/metrics</a>.
+	</body>`)
+	})
 
 	log.Println("serving /metrics at", mtef.bindAddr, "...")
 	log.Fatal(http.ListenAndServe(mtef.bindAddr, nil))
