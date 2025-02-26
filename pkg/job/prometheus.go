@@ -69,7 +69,7 @@ func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		for k, v := range job.Runs {
 			fmt.Fprintf(w, "mtr_runs_total{%s%s} %d %d\n",
-				l, fmt.Sprintf("error=%q", k), v, tsMs)
+				l, fmt.Sprintf(",error=%q", k), v, tsMs)
 		}
 
 		fmt.Fprintf(w, "mtr_report_duration_seconds{%s} %f %d\n",
