@@ -1,3 +1,10 @@
+## Changelog for mtr-exporter 0.5.1 (2025-02-26)
+
+Bug Fixes:
+
+* Fix improper placing of label "error" into the metrics. Fixes GH#32
+
+
 ## Changelog for mtr-exporter 0.5.0 (2025-02-13)
 
 Features
