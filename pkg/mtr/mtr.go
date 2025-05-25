@@ -76,6 +76,8 @@ func (report *Report) Empty() bool {
 	return len(report.Hubs) == 0
 }
 
+func (report *Report) HubsTotal() int { return len(report.Hubs) }
+
 func (mtr *Mtr) Labels() map[string]string {
 	return map[string]string{
 		"src":        mtr.Src,

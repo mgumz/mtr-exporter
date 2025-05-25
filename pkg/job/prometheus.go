@@ -32,6 +32,8 @@ func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "# TYPE mtr_report_duration_seconds gauge")
 	fmt.Fprintln(w, "# HELP mtr_report_count_hubs number of hops visited in the last mtr run")
 	fmt.Fprintln(w, "# TYPE mtr_report_count_hubs gauge")
+	fmt.Fprintln(w, "# HELP mtr_report_min_loss minimum packet loss (percentage float, 0 to 100) of all reported hubs")
+	fmt.Fprintln(w, "# TYPE mtr_report_min_loss gauge")
 
 	mtr.WriteMetricsHelpType(w)
 
@@ -78,12 +80,25 @@ func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "mtr_report_count_hubs{%s} %d %d\n",
 			l, len(report.Hubs), tsMs)
 
-		if len(job.Report.Hubs) == 0 {
+		// in case the network does not provide any hubs between source and
+		// destination, the number of report.Hubs is 0. this might happen
+		// in VPN situations. to allow alert-systems to catch this situation,
+		// mtr_report_min_loss is a metric
+		minLoss := 100.0
+		defer func() {
+			fmt.Fprintf(w, "mtr_report_min_loss{%s} %f %d\n",
+				l, minLoss, tsMs)
+		}()
+
+		if report.Empty() {
 			continue
 		}
 
-		lh := len(report.Hubs) - 1
+		lh := report.HubsTotal() - 1
 		for i, hub := range report.Hubs {
+
+			minLoss = min(minLoss, hub.Loss)
+
 			labels["host"] = hub.Host
 			labels["count"] = strconv.FormatInt(int64(hub.Count), integerBase)
 			labels["hop"] = hopLabel(i, lh)
