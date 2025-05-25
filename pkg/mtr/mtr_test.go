@@ -147,18 +147,18 @@ func Test_MtrReportDecoding(t *testing.T) {
 func Test_MtrEmptyHubs(t *testing.T) {
 	body := `
 	{
-   		"report": {
-        	"mtr": {
-            	"src": "example-src.test",
-             	"dst": "example-dst.invalid",
-              	"tos": 0,
-               	"tests": 10,
-                "psize": "64",
-                "bitpattern": "0x00"
-            },
-            "hubs": []
-        }
-    }`
+		"report": {
+			"mtr": {
+				"src": "example-src.test",
+				"dst": "example-dst.invalid",
+				"tos": 0,
+				"tests": 10,
+				"psize": "64",
+				"bitpattern": "0x00"
+			},
+			"hubs": []
+		}
+	}`
 
 	report := &Report{}
 	if err := report.Decode(strings.NewReader(body)); err != nil {
