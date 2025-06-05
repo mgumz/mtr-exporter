@@ -1,9 +1,22 @@
+## Changelog for mtr-exporter 0.6.0 (2025-06-05)
+
+Features:
+
+* Add `mtr_report_min_loss` metric: observed minimal packet loss for
+  a given run, defaults to 100.
+
+  Improves the situation for GH#33.
+
+Maintenance:
+
+* Bump base container image to Alpine:3.22
+  (no update of mtr, still on 0.95)
+
 ## Changelog for mtr-exporter 0.5.1 (2025-02-26)
 
 Bug Fixes:
 
 * Fix improper placing of label "error" into the metrics. Fixes GH#32
-
 
 ## Changelog for mtr-exporter 0.5.0 (2025-02-13)
 
