@@ -1,12 +1,16 @@
 package job
 
 import (
+	"encoding/hex"
 	"fmt"
+	"io"
 	"net/http"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/blake2b"
 
 	"github.com/mgumz/mtr-exporter/pkg/mtr"
 )
@@ -94,28 +98,36 @@ func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		lh := report.HubsTotal() - 1
-		for i, hub := range report.Hubs {
-
-			minLoss = min(minLoss, hub.Loss)
-
-			labels["host"] = hub.Host
-			labels["count"] = strconv.FormatInt(int64(hub.Count), integerBase)
-			labels["hop"] = hopLabel(i, lh)
-
-			// "last" as label is redundant with `hop="last"`, but
-			// also an existing label since mtr-exporter:0.1.0:
-			// lets keep it for now.
-			if i == lh {
-				labels["last"] = "true"
-			}
-
-			hub.WriteMetrics(w, labels2Prom(labels), tsMs)
-
-			delete(labels, "last")
-		}
+		writeMetricsForHubs(w, report, tsMs, labels, &minLoss)
 	}
+}
 
+func writeMetricsForHubs(w io.Writer, report mtr.Report, tsMs int64, labels map[string]string, minLoss *float64) {
+
+	path := []string{}
+
+	lh := report.HubsTotal() - 1
+	for i, hub := range report.Hubs {
+
+		*minLoss = min(*minLoss, hub.Loss)
+		path = append(path, hub.Host)
+
+		labels["host"] = hub.Host
+		labels["count"] = strconv.FormatInt(int64(hub.Count), integerBase)
+		labels["hop"] = hopLabel(i, lh)
+
+		// "last" as label is redundant with `hop="last"`, but
+		// also an existing label since mtr-exporter:0.1.0:
+		// lets keep it for now.
+		if i == lh {
+			labels["last"] = "true"
+			labels["path_id"] = pathId(path)
+		}
+
+		hub.WriteMetrics(w, labels2Prom(labels), tsMs)
+
+		delete(labels, "last")
+	}
 }
 
 func labels2Prom(labels map[string]string) string {
@@ -138,4 +150,41 @@ func hopLabel(i, last int) string {
 		return "first"
 	}
 	return "intermediate"
+}
+
+// calculates a "pathId" of the list of hosts.
+// when the path to the destination changes, the pathId
+// should change.
+func pathId(hosts []string) string {
+
+	path := strings.Join(hosts, " ")
+
+	// motivation for blake2b:
+	//
+	// situation:
+	// - `mtr` yields    `"host": "host.example.com"`
+	// - `mtr -n` yields `"host": "192.0.2.1"`
+	// - `mtr -b` yields `"host": "host.example.com (192.0.2.1)"`
+	// - an unidentifyable host is represented as "???"
+	// - host IPs can be IPv4 and IPv6
+	//
+	// so, although chksum(hosts) is not directly understandable
+	// by the human eye, it will work for all of the above cases,
+	// it will change when the path changes, it will change when
+	// the reverse DNS lookup changes and it is reasonable "long" / "short".
+	// blake2b is picked over sha256 because it can produce shorter
+	// checksums (the chance of an "attack" is rather slim: to cause
+	// a collision to "hide" a specific hop/host in a observed
+	// path would require to craft a collision causing reverse DNS
+	// entry for the host in question.
+
+	// 8 byte (64 bit) digest. RFC7693 states 2^80 collision security for a 20
+	// byte (160 bit) digest, 2^256 collision for a 64 byte ( 512 bit). so, 8
+	// byte (64 bit) should be good for 2^32.
+
+	hasher, _ := blake2b.New(8, nil)
+	hasher.Write([]byte(path))
+	pathId := hasher.Sum(nil)
+
+	return hex.EncodeToString(pathId[:])
 }
