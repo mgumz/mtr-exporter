@@ -52,13 +52,13 @@ func (job *Job) Launch() error {
 
 	// TODO: maybe use CommandContext to have an upper limit in the execution
 
-	cmd := exec.Command(job.mtrBinary, job.args...)
+	cmd := exec.Command(job.mtrBinary, job.args...) // #nosec G204
 
 	// launch mtr
 	bufStdout, bufStderr := bytes.Buffer{}, bytes.Buffer{}
 	cmd.Stdout, cmd.Stderr = &bufStdout, &bufStderr
 	launched := time.Now()
-	cmd.Run()
+	_ = cmd.Run()
 	duration := time.Since(launched)
 
 	errMsg := normalizeMtrErrorMsg(bufStderr.String())

@@ -63,7 +63,7 @@ func (jw *jobFileWatch) Run() {
 
 	log.Printf("info: watched file changed: replacing %d jobs", len(jobs))
 
-	jobs.ReSchedule(jw.scheduler, jw.collector)
+	_ = jobs.ReSchedule(jw.scheduler, jw.collector)
 
 	jw.jobs = jobs
 	jw.chksum = chksum

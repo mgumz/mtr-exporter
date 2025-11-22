@@ -13,7 +13,7 @@ import (
 // <label> -- <schedule> -- <mtr-flags>
 
 func ParseJobFile(filename, mtr string) (jobs Jobs, cksum []byte, err error) {
-	f, err := os.Open(filename)
+	f, err := os.Open(filename) // #nosec G304
 	if err != nil {
 		return []*Job{}, []byte{}, err
 	}
