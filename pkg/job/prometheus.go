@@ -132,15 +132,16 @@ func labels2Prom(labels map[string]string) string {
 
 func hopLabel(i, last int) string {
 
-	if i == last {
-		if i == 0 {
-			return "first_last"
-		}
+	switch {
+	case (i == 0) && (last == 0):
+		return "first_last"
+	case i == last:
 		return "last"
-	} else if i == 0 {
+	case i == 0:
 		return "first"
+	default:
+		return "intermediate"
 	}
-	return "intermediate"
 }
 
 // calculates a "pathId" of the list of hosts.
