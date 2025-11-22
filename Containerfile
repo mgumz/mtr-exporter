@@ -2,7 +2,7 @@
 ## -- runtime environment
 ##
 
-FROM    golang:1.24.3-alpine3.22 AS build-env
+FROM    golang:1.25.4-alpine3.22 AS build-env
 
 #       https://github.com/docker-library/official-images#multiple-architectures
 #       https://docs.docker.com/engine/reference/builder/#automatic-platform-args-in-the-global-scope
