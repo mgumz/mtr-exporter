@@ -30,15 +30,6 @@ func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	fmt.Fprintln(w, "# HELP mtr_runs_total number of mtr runs")
-	fmt.Fprintln(w, "# TYPE mtr_runs_total counter")
-	fmt.Fprintln(w, "# HELP mtr_report_duration_seconds duration of last mtr run (in seconds)")
-	fmt.Fprintln(w, "# TYPE mtr_report_duration_seconds gauge")
-	fmt.Fprintln(w, "# HELP mtr_report_count_hubs number of hops visited in the last mtr run")
-	fmt.Fprintln(w, "# TYPE mtr_report_count_hubs gauge")
-	fmt.Fprintln(w, "# HELP mtr_report_min_loss minimum packet loss (percentage float, 0 to 100) of all reported hubs")
-	fmt.Fprintln(w, "# TYPE mtr_report_min_loss gauge")
-
 	mtr.WriteMetricsHelpType(w)
 
 	if len(c.jobs) == 0 {

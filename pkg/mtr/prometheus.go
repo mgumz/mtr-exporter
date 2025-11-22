@@ -16,6 +16,16 @@ func (hub *Hub) WriteMetrics(w io.Writer, labels string, ts int64) {
 }
 
 func WriteMetricsHelpType(w io.Writer) {
+
+	fmt.Fprintln(w, "# HELP mtr_runs_total number of mtr runs")
+	fmt.Fprintln(w, "# TYPE mtr_runs_total counter")
+	fmt.Fprintln(w, "# HELP mtr_report_duration_seconds duration of last mtr run (in seconds)")
+	fmt.Fprintln(w, "# TYPE mtr_report_duration_seconds gauge")
+	fmt.Fprintln(w, "# HELP mtr_report_count_hubs number of hops visited in the last mtr run")
+	fmt.Fprintln(w, "# TYPE mtr_report_count_hubs gauge")
+	fmt.Fprintln(w, "# HELP mtr_report_min_loss minimum packet loss (percentage float, 0 to 100) of all reported hubs")
+	fmt.Fprintln(w, "# TYPE mtr_report_min_loss gauge")
+
 	fmt.Fprintln(w, "# HELP mtr_report_snt number of packets sent via mtr towards dst-host (see man mtr '-c')")
 	fmt.Fprintln(w, "# TYPE mtr_report_snt gauge")
 	fmt.Fprintln(w, "# HELP mtr_report_loss packet loss (percentage float, 0 to 100) of packets sent in last cycle")

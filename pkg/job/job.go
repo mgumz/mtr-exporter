@@ -42,9 +42,9 @@ func NewJob(mtr string, args []string, schedule string) *Job {
 		mtrBinary: mtr,
 		cmdLine:   strings.Join(append([]string{mtr}, args...), " "),
 	}
-	job.JobMeta.Runs = map[string]int64{}
-	job.JobMeta.Schedule = schedule
-	job.JobMeta.CmdLine = job.cmdLine
+	job.Runs = map[string]int64{}
+	job.Schedule = schedule
+	job.CmdLine = job.cmdLine
 	return &job
 }
 
@@ -77,9 +77,9 @@ func (job *Job) Launch() error {
 	}
 
 	// copy the report into the job
-	job.JobMeta.Report = report
-	job.JobMeta.Launched = launched
-	job.JobMeta.Duration = duration
+	job.Report = report
+	job.Launched = launched
+	job.Duration = duration
 
 	if job.UpdateFn != nil {
 		job.UpdateFn(job.JobMeta)

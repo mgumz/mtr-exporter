@@ -84,21 +84,29 @@ func main() {
 
 	http.Handle("/metrics", collector)
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "OK")
+		fmt.Fprintln(w, "OK")
 	})
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, `<!doctype html>
-	<html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<title>mtr-exporter</title>
-	</head>
-	<body>
-		mtr-exporter - <a href="https://github.com/mgumz/mtr-exporter">https://github.com/mgumz/mtr-exporter<a><br>
-		see <a href="/metrics">/metrics</a>.
-	</body>`)
+		fmt.Fprintln(w, mtrIndexPage)
 	})
 
 	log.Println("serving /metrics at", mtef.bindAddr, "...")
-	log.Fatal(http.ListenAndServe(mtef.bindAddr, nil))
+
+	server := &http.Server{
+		Addr:              mtef.bindAddr,
+		ReadHeaderTimeout: 1 * time.Second,
+	}
+
+	log.Fatal(server.ListenAndServe())
 }
+
+const mtrIndexPage = `<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>mtr-exporter</title>
+</head>
+<body>
+	mtr-exporter - <a href="https://github.com/mgumz/mtr-exporter">https://github.com/mgumz/mtr-exporter<a><br>
+	see <a href="/metrics">/metrics</a>.
+</body>`

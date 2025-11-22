@@ -57,8 +57,10 @@ func parseJobLine(line string, lnr int, mtr string) (*Job, error) {
 		return nil, nil
 	}
 
-	parts := strings.SplitN(line, " -- ", 3)
-	if len(parts) != 3 {
+	const maxParts = 3
+
+	parts := strings.SplitN(line, " -- ", maxParts)
+	if len(parts) != maxParts {
 		return nil, fmt.Errorf("invalid jobLine %d: expect '<label> -- <schedule> -- <mtr-flags>'", lnr)
 	}
 
