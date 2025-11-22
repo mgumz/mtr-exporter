@@ -1,65 +1,44 @@
-# options for analysis running
-run:
-  modules-download-mode: mod
-linters-settings:
-  funlen:
-    lines: 140
-  misspell:
-    locale: US
-  goimports:
-    local-prefixes: github.com/golangci/golangci-lint
-  gocritic:
-    enabled-tags:
-      - performance
-      - style
-      - experimental
-    disabled-checks:
-      - whyNoLint
-      - wrapperFunc
-
+---
+version: "2"
 linters:
-  disable-all: true
+  disable:
+    - errcheck
   enable:
     - bodyclose
-    - deadcode
-    - depguard
-    - dogsled
-    - dupl
-    - errcheck
-    - exportloopref
-    - exhaustive
     - funlen
+    - gocognit
     - goconst
     - gocritic
     - gocyclo
-    - gofmt
-    - goimports
-    - gomnd
-    - goprintffuncname
     - gosec
-    - gosimple
     - govet
-    - ineffassign
     - lll
     - misspell
-    - nakedret
-    - noctx
-    - nolintlint
-    - revive
-    - rowserrcheck
+    - mnd
+    - prealloc
     - staticcheck
-    - structcheck
-    - stylecheck
-    - typecheck
-    - unconvert
-    - unparam
-    - unused
-    - varcheck
-    - whitespace
-    - wsl
-
-issues:
-   exclude-rules:
-     - text: "Subprocess launched with a potential tainted input or cmd arguments"
-       linters:
-         - gosec
+    - tagalign
+    - wastedassign
+  exclusions:
+    rules:
+      - source: "^func main"
+        linters:
+          - funlen
+      - source: "^func Test_MtrReportDecoding"
+        linters:
+          - funlen
+      - path: 'pkg/job/watch_file\.go'
+        linters:
+          - lll
+      - path: 'pkg/mtr/prometheus\.go'
+        linters:
+          - lll
+  settings:
+    funlen:
+      ignore-comments: true
+    goconst:
+      min-occurrences: 4
+    mnd:
+      ignored-numbers:
+        - '2'      # "half", come on
+        - '100.0'  # 100.0%

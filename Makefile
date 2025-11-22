@@ -74,63 +74,41 @@ deps-ls:
 deps-ls-updates:
 	go list -m -mod=readonly -f '{{if not .Indirect}}{{.}}{{end}}' -u all
 
-
+test:
+	go test -v ./cmd/$(PROJECT)
+	go test -v ./pkg/...
 
 compile-analysis: cmd/$(PROJECT)
 	go build -gcflags '-m' ./$^
 
-reports: report-vuln report-gosec
-reports: report-staticcheck report-vet report-ineffassign
-reports: report-cyclo
-reports: report-errcheck report-gocritic
-reports: report-misspell
+# https://github.com/nektos/act
+run-github-workflow-lint:
+	act -j lint --container-architecture linux/amd64
+run-github-workflow-test:
+	act -j test --container-architecture linux/amd64
+run-github-workflow-buildLinux:
+	act -j buildLinux --container-architecture linux/amd64
 
-report-cyclo:
+reports: report-golangci-lint
+reports: report-vuln report-gosec report-vet
+
+report-golangci-lint:
 	@echo '####################################################################'
-	gocyclo ./cmd/...
-report-misspell:
-	@echo '####################################################################'
-	misspell .
-report-ineffassign:
-	@echo '####################################################################'
-	ineffassign ./cmd/... ./pkg/...
-report-vet:
-	@echo '####################################################################'
-	go vet ./cmd/... ./pkg/...
-report-staticcheck:
-	@echo '####################################################################'
-	staticcheck ./cmd/... ./pkg/...
+	golangci-lint run cmd/... pkg/...
+
 report-vuln:
 	@echo '####################################################################'
 	govulncheck ./cmd/... ./pkg/...
-report-gosec:
-	@echo '####################################################################'
-	gosec ./cmd/... ./pkg/...
+
 report-grype:
 	@echo '####################################################################'
 	grype .
-report-errcheck:
-	@echo '####################################################################'
-	errcheck -ignorepkg fmt ./...
-report-gocritic:
-	@echo '####################################################################'
-	gocritic check ./cmd/... ./pkg/...
 
 fetch-report-tools:
-	go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
-	go install github.com/client9/misspell/cmd/misspell@latest
-	go install github.com/gordonklaus/ineffassign@latest
-	go install honnef.co/go/tools/cmd/staticcheck@latest
 	go install golang.org/x/vuln/cmd/govulncheck@latest
-	go install github.com/securego/gosec/v2/cmd/gosec@latest
-	go install -v github.com/go-critic/go-critic/cmd/gocritic@latest
-	go install github.com/kisielk/errcheck@latest
 
 fetch-report-tool-grype:
 	go install github.com/anchore/grype@latest
 
-
-test:
-	go test -v ./cmd/$(PROJECT)
 
 .PHONY: $(PROJECT) bin/$(PROJECT) binaries releases
