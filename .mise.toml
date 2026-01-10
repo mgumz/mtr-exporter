@@ -1,10 +1,10 @@
 [tools]
-act = "0.2.82"
-grype = "0.103.0"
-golangci-lint = "2.6.2"
+act = "0.2.84"
+grype = "0.104.4"
+golangci-lint = "2.8.0"
 golangci-lint-langserver = "0.0.11"
-go = "1.25.4"
-"go:golang.org/x/tools/gopls" = "0.20.0"
+go = "1.25.5"
+"go:golang.org/x/tools/gopls" = "0.21.0"
 
 [settings]
 lockfile = true
