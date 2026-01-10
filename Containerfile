@@ -2,7 +2,7 @@
 ## -- runtime environment
 ##
 
-FROM    golang:1.25.4-alpine3.22 AS build-env
+FROM    golang:1.25.5-alpine3.23 AS build-env
 
 #       https://github.com/docker-library/official-images#multiple-architectures
 #       https://docs.docker.com/engine/reference/builder/#automatic-platform-args-in-the-global-scope
@@ -20,7 +20,7 @@ RUN     make LDFLAGS="-ldflags -w" -C /src/mtr-exporter bin/mtr-exporter-$VERSIO
 ## -- runtime environment
 ##
 
-FROM    alpine:3.22 AS rt-env
+FROM    alpine:3.23 AS rt-env
 
 RUN     apk add -U --no-cache mtr tini && apk del apk-tools libc-utils
 COPY    --from=build-env /src/mtr-exporter/bin/* /usr/bin/mtr-exporter
