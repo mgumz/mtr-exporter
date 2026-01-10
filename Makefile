@@ -54,9 +54,9 @@ releases/$(PROJECT)-$(VERSION).%.tar.gz: bin/$(PROJECT)-$(VERSION).%
 bin:
 	mkdir $@
 
-
+CRI ?= docker
 container-image:
-	env DOCKER_BUILDKIT=1 docker build \
+	env DOCKER_BUILDKIT=1 $(CRI) build \
 		--file Containerfile \
 		--platform=$(CONTAINER_PLATFORM) \
 		--build-arg VERSION=$(VERSION) \
