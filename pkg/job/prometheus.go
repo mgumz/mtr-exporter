@@ -1,7 +1,6 @@
 package job
 
 import (
-	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -112,11 +111,19 @@ func writeMetricsForHubs(w io.Writer, report mtr.Report, tsMs int64, labels map[
 		// lets keep it for now.
 		if i == lh {
 			labels["last"] = "true"
-			labels["path_id"] = pathId(path)
+			labels["path_id"] = strconv.FormatInt(pathId(path), integerBase)
 		}
 
-		hub.WriteMetrics(w, labels2Prom(labels), tsMs)
+		labelsStr := labels2Prom(labels)
 
+		hub.WriteMetrics(w, labelsStr, tsMs)
+		if i == lh {
+			fmt.Fprintf(w, "mtr_report_path_id{%s} %s %d\n", labelsStr, labels["path_id"], tsMs)
+		}
+
+		// map "labels" is modified and propagated back to the caller. this
+		// will lead to a "last=true" label on metric mtr_report_min_loss
+		// which is not desired.
 		delete(labels, "last")
 	}
 }
@@ -147,7 +154,7 @@ func hopLabel(i, last int) string {
 // calculates a "pathId" of the list of hosts.
 // when the path to the destination changes, the pathId
 // should change.
-func pathId(hosts []string) string {
+func pathId(hosts []string) int64 {
 
 	path := strings.Join(hosts, " ")
 
@@ -160,23 +167,28 @@ func pathId(hosts []string) string {
 	// - an unidentifyable host is represented as "???"
 	// - host IPs can be IPv4 and IPv6
 	//
-	// so, although chksum(hosts) is not directly understandable
+	// although chksum(hosts) is not directly understandable
 	// by the human eye, it will work for all of the above cases,
 	// it will change when the path changes, it will change when
 	// the reverse DNS lookup changes and it is reasonable "long" / "short".
+	//
 	// blake2b is picked over sha256 because it can produce shorter
-	// checksums (the chance of an "attack" is rather slim: to cause
-	// a collision to "hide" a specific hop/host in a observed
-	// path would require to craft a collision causing reverse DNS
-	// entry for the host in question.
+	// checksums. and short is what we need for prometheus:
+	//
+	// the datamodel of prometheus requires the use of float64, which leaves
+	// use with a max value of 2^53. thus: 48bits / 6 bytes as digest.
+	//
+	// RFC7693 states 2^192 collision resistency on 48bit digest size.
 
-	// 8 byte (64 bit) digest. RFC7693 states 2^80 collision security for a 20
-	// byte (160 bit) digest, 2^256 collision for a 64 byte ( 512 bit). so, 8
-	// byte (64 bit) should be good for 2^32.
+	const digestSize = 6
 
-	hasher, _ := blake2b.New(8, nil)
+	hasher, _ := blake2b.New(digestSize, nil)
 	hasher.Write([]byte(path))
-	pathId := hasher.Sum(nil)
 
-	return hex.EncodeToString(pathId[:])
+	pathId := int64(0)
+	for i, n := range hasher.Sum(nil) {
+		pathId = pathId | (int64(n) << (i * 8))
+	}
+
+	return pathId
 }
