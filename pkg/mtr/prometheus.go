@@ -23,6 +23,8 @@ func WriteMetricsHelpType(w io.Writer) {
 	fmt.Fprintln(w, "# TYPE mtr_report_duration_seconds gauge")
 	fmt.Fprintln(w, "# HELP mtr_report_count_hubs number of hops visited in the last mtr run")
 	fmt.Fprintln(w, "# TYPE mtr_report_count_hubs gauge")
+	fmt.Fprintln(w, "# HELP mtr_report_path_id pathId/hash of hops visited in the last mtr run")
+	fmt.Fprintln(w, "# TYPE mtr_report_path_id gauge")
 	fmt.Fprintln(w, "# HELP mtr_report_min_loss minimum packet loss (percentage float, 0 to 100) of all reported hubs")
 	fmt.Fprintln(w, "# TYPE mtr_report_min_loss gauge")
 
