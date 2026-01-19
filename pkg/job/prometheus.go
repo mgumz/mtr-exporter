@@ -1,7 +1,6 @@
 package job
 
 import (
-	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -112,11 +111,19 @@ func writeMetricsForHubs(w io.Writer, report mtr.Report, tsMs int64, labels map[
 		// lets keep it for now.
 		if i == lh {
 			labels["last"] = "true"
-			labels["path_id"] = pathId(path)
+			labels["path_id"] = strconv.FormatInt(pathId(path), integerBase)
 		}
 
-		hub.WriteMetrics(w, labels2Prom(labels), tsMs)
+		labelsStr := labels2Prom(labels)
 
+		hub.WriteMetrics(w, labelsStr, tsMs)
+		if i == lh {
+			fmt.Fprintf(w, "mtr_report_path_id{%s} %s %d\n", labelsStr, labels["path_id"], tsMs)
+		}
+
+		// map "labels" is modified and propagated back to the caller. this
+		// will lead to a "last=true" label on metric mtr_report_min_loss
+		// which is not desired.
 		delete(labels, "last")
 	}
 }
@@ -147,7 +154,7 @@ func hopLabel(i, last int) string {
 // calculates a "pathId" of the list of hosts.
 // when the path to the destination changes, the pathId
 // should change.
-func pathId(hosts []string) string {
+func pathId(hosts []string) int64 {
 
 	path := strings.Join(hosts, " ")
 
@@ -176,7 +183,11 @@ func pathId(hosts []string) string {
 
 	hasher, _ := blake2b.New(8, nil)
 	hasher.Write([]byte(path))
-	pathId := hasher.Sum(nil)
 
-	return hex.EncodeToString(pathId[:])
+	pathId := int64(0)
+	for i, n := range hasher.Sum(nil) {
+		pathId = pathId | (int64(n) << (i * 8))
+	}
+
+	return pathId
 }
