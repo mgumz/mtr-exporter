@@ -1,4 +1,4 @@
-name: Build on tags
+name: Build Container Image
 
 on:
   push:
