@@ -61,6 +61,16 @@ func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Fprintf(w, "# mtr run %s: %s -- %s%s\n", job.Label, ts.Format(time.RFC3339Nano), job.CmdLine, errMsg)
 
+		// in case the network does not provide any hubs between source and
+		// destination, the number of report.Hubs is 0. this might happen
+		// in VPN situations. to allow alert-systems to catch this situation,
+		// mtr_report_min_loss is a metric
+		minLoss := 100.0
+
+		if !report.Empty() {
+			writeMetricsForHubs(w, report, tsMs, labels, &minLoss)
+		}
+
 		l := labels2Prom(labels)
 
 		for k, v := range job.Runs {
@@ -74,21 +84,8 @@ func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "mtr_report_count_hubs{%s} %d %d\n",
 			l, len(report.Hubs), tsMs)
 
-		// in case the network does not provide any hubs between source and
-		// destination, the number of report.Hubs is 0. this might happen
-		// in VPN situations. to allow alert-systems to catch this situation,
-		// mtr_report_min_loss is a metric
-		minLoss := 100.0
-		defer func() {
-			fmt.Fprintf(w, "mtr_report_min_loss{%s} %f %d\n",
-				l, minLoss, tsMs)
-		}()
-
-		if report.Empty() {
-			continue
-		}
-
-		writeMetricsForHubs(w, report, tsMs, labels, &minLoss)
+		fmt.Fprintf(w, "mtr_report_min_loss{%s} %f %d\n",
+			l, minLoss, tsMs)
 	}
 }
 
@@ -107,7 +104,7 @@ func writeMetricsForHubs(w io.Writer, report mtr.Report, tsMs int64, labels map[
 		labels["hop"] = hopLabel(i, lh)
 
 		// "last" as label is redundant with `hop="last"`, but
-		// also an existing label since mtr-exporter:0.1.0:
+		// also an existing label ("api contract") since mtr-exporter:0.1.0:
 		// lets keep it for now.
 		if i == lh {
 			labels["last"] = "true"
