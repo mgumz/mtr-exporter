@@ -1,9 +1,9 @@
 [tools]
 act = "0.2.84"
-grype = "0.104.4"
+grype = "0.105.0"
 golangci-lint = "2.8.0"
 golangci-lint-langserver = "0.0.11"
-go = "1.25.5"
+go = "1.25.6"
 "go:golang.org/x/tools/gopls" = "0.21.0"
 "go:github.com/caarlos0/pinata" = "0.3.4"
 
