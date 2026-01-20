@@ -1,3 +1,21 @@
+## Changelog for mtr-exporter 0.7.0 (2026-01-xx)
+
+Features:
+
+* Add `mtr_report_path_id` metric and `path_id` label to make path changes
+  more easier to detect. The `pathId` is a checksum over the concenated
+  hops of a specific `mtr` run.
+
+Bug Fixes:
+
+* Fix `mtr_report_min_loss`: When `mtr-exporter` was used with multiple jobs,
+  `mtr_report_min_loss` carried the minium loss of the last job.
+
+Maintenance:
+
+* Bump base container image to Alpine:3.22
+  (mtr:0.96)
+
 ## Changelog for mtr-exporter 0.6.0 (2025-06-05)
 
 Features:
