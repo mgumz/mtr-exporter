@@ -3,7 +3,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/mgumz/mtr-exporter)](https://goreportcard.com/report/github.com/mgumz/mtr-exporter)
 
 **mtr-exporter** periodically executes [mtr] to a given host and provides the
-measured results as [prometheus] metrics.
+measured results as [Prometheus] metrics.
 
 Usually, [mtr] is producing the following output:
 
@@ -41,11 +41,22 @@ is.
 Legacy: the last hop in the list of tested hosts contains the label `"last"="true"`.
 Use `hop=~".*last"` in your Prometheus queries to achieve the same.
 
-When [prometheus] scrapes the data, you can visualise the observed values:
+`mtr_report_path_id` is a metric to allow detecting path changes along the
+route between `src` and `dst` hosts. Technically, it is the result of a hash
+function (see [Blake2b]) of the concatenated hops as measured. In addition to
+the metric `mtr_report_path_id`, the label `path_id` is available on most
+metrics. One can use a prometheus query such as this to detect changes:
 
-![MTR results in prometheus](./media/screenshot-2020-03-08+181019.9188279670.png "MTR 1")
+```prometheus
+changes(max by(dst) (mtr_report_path_id{hop="last"})[5m:1m])
+```
 
-![MTR results in prometheus](./media/screenshot-2020-03-08+181030.4810786850.png "MTR 1")
+Such data can then visualized with [Grafana]:
+
+![MTR results in Grafana](./media/screenshot-2026-01-24-fs8.png)
+
+See [helpers/grafana-dashboard.json](helpers/grafana-dashboard.json) as an
+example of a Dashboard ready for [Grafana].
 
 ## Usage
 
@@ -183,4 +194,7 @@ see LICENSE file
 * Mathias Gumz <mg@2hoch5.com>
 
 [mtr]: https://www.bitwizard.nl/mtr/index.html
-[prometheus]: https://prometheus.io
+[Prometheus]: https://prometheus.io
+[Grafana]: https://grafana.com
+[Blake2b]: https://datatracker.ietf.org/doc/html/rfc7693.html
+
