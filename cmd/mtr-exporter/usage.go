@@ -31,7 +31,10 @@ FLAGS:
             if it has changed stop previously running mtr-jobs and apply
             all jobs defined in -jobs.
 -version
+-show-version
             show version
+-show-license
+            show license
 
 MTR-FLAGS:
 see "man mtr" for valid flags to mtr.

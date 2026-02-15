@@ -78,6 +78,9 @@ test:
 	go test -v ./cmd/$(PROJECT)
 	go test -v ./pkg/...
 
+generate-code:
+	go generate -v ./cmd/...
+
 compile-analysis: cmd/$(PROJECT)
 	go build -gcflags '-m' ./$^
 

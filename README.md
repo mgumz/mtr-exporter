@@ -83,14 +83,16 @@ example of a Dashboard ready for [Grafana].
                    @hourly       - run once per hour
                    10 * * * *    - execute 10 minutes after the full hour
                 see https://en.wikipedia.org/wiki/Cron
+    -show-license
+                show license
+    -show-version
+                show version
     -tslogs
                 use timestamps in logs
     -watch-jobs <schedule>
                 periodically watch the file defined via -jobs (default: "")
                 if it has changed stop previously running mtr-jobs and apply
                 all jobs defined in -jobs.
-    -version
-                show version
     MTR-FLAGS:
             see "man mtr" for valid flags to mtr.
 

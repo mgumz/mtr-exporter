@@ -12,6 +12,7 @@ type mteFlags struct {
 	doWatchJobsFile string
 	doPrintVersion  bool
 	doPrintUsage    bool
+	doPrintLicense  bool
 	doTimeStampLogs bool
 }
 
@@ -26,6 +27,8 @@ func newFlags() *mteFlags {
 	flag.StringVar(&mte.schedule, "schedule", "@every 60s", "schedule at which often `mtr` is launched")
 	flag.StringVar(&mte.doWatchJobsFile, "watch-jobs", "", "re-parse -jobs file to schedule")
 	flag.BoolVar(&mte.doPrintVersion, "version", false, "show version")
+	flag.BoolVar(&mte.doPrintVersion, "show-version", false, "show version")
+	flag.BoolVar(&mte.doPrintLicense, "show-license", false, "show license")
 	flag.BoolVar(&mte.doPrintUsage, "h", false, "show help")
 	flag.BoolVar(&mte.doTimeStampLogs, "tslogs", false, "use timestamps in logs")
 

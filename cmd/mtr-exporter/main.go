@@ -27,6 +27,10 @@ func main() {
 		printVersion()
 		return
 	}
+	if mtef.doPrintLicense {
+		printLicense()
+		return
+	}
 	if mtef.doPrintUsage {
 		flag.Usage()
 		return
