@@ -5,7 +5,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -96,12 +95,8 @@ func main() {
 	}
 
 	http.Handle("/metrics", collector)
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "OK")
-	})
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, mtrIndexPage)
-	})
+	http.HandleFunc("/health", mtrHealthPage)
+	http.HandleFunc("/", mtrIndexPage)
 
 	slog.Info("serving...",
 		"http.path", "/metrics",
