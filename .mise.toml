@@ -5,8 +5,8 @@ golangci-lint = "2.11.3"
 golangci-lint-langserver = "0.0.12"
 go = "1.26.1"
 "go:golang.org/x/tools/gopls" = "0.21.1"
-"go:github.com/caarlos0/pinata" = "0.3.4"
 "go:github.com/loov/goda" = "0.9.3"
+pinact = "3.9.0"
 
 [settings]
 lockfile = true
