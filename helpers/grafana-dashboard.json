@@ -1,9 +1,7 @@
 {
   "apiVersion": "dashboard.grafana.app/v2beta1",
-  "kind": "Dashboard",
+  "kind": "DashboardWithAccessInfo",
   "metadata": {
-    "name": "mtr-exporter",
-    "labels": {},
     "annotations": {}
   },
   "spec": {
@@ -421,9 +419,64 @@
       }
     },
     "layout": {
-      "kind": "GridLayout",
+      "kind": "RowsLayout",
       "spec": {
-        "items": []
+        "rows": [
+          {
+            "kind": "RowsLayoutRow",
+            "spec": {
+              "collapse": false,
+              "layout": {
+                "kind": "GridLayout",
+                "spec": {
+                  "items": [
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-10"
+                        },
+                        "height": 9,
+                        "width": 24,
+                        "x": 0,
+                        "y": 0
+                      }
+                    }
+                  ]
+                }
+              },
+              "title": "MTR Measurements"
+            }
+          },
+          {
+            "kind": "RowsLayoutRow",
+            "spec": {
+              "collapse": false,
+              "layout": {
+                "kind": "GridLayout",
+                "spec": {
+                  "items": [
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-4"
+                        },
+                        "height": 10,
+                        "width": 24,
+                        "x": 0,
+                        "y": 0
+                      }
+                    }
+                  ]
+                }
+              },
+              "title": "Details"
+            }
+          }
+        ]
       }
     },
     "links": [],
@@ -436,8 +489,6 @@
     "timeSettings": {
       "autoRefresh": "",
       "autoRefreshIntervals": [
-        "5s",
-        "10s",
         "30s",
         "1m",
         "5m",
@@ -482,6 +533,7 @@
           },
           "refresh": "onTimeRangeChanged",
           "regex": "",
+          "regexApplyTo": "value",
           "skipUrlSync": false,
           "sort": "alphabeticalAsc"
         }
@@ -513,6 +565,7 @@
           },
           "refresh": "onTimeRangeChanged",
           "regex": "",
+          "regexApplyTo": "value",
           "skipUrlSync": false,
           "sort": "disabled"
         }
