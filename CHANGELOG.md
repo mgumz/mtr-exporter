@@ -1,10 +1,11 @@
-## Changelog for mtr-exporter 0.7.0 (2026-01-xx)
+## Changelog for mtr-exporter 0.7.0 (2026-03-xx)
 
 Features:
 
 * Add `mtr_report_path_id` metric and `path_id` label to make path changes
   more easier to detect. The `pathId` is a checksum over the concenated
   hops of a specific `mtr` run.
+* Add `-timeshift` flag and support for random delays in the jobs file.
 
 Bug Fixes:
 
@@ -13,7 +14,7 @@ Bug Fixes:
 
 Maintenance:
 
-* Bump base container image to Alpine:3.22
+* Bump base container image to Alpine:3.23
   (mtr:0.96)
 
 ## Changelog for mtr-exporter 0.6.0 (2025-06-05)
