@@ -6,7 +6,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"time"
@@ -17,7 +17,6 @@ import (
 )
 
 func main() {
-	log.SetFlags(0)
 
 	mtef := newFlags()
 	flag.Usage = usage
@@ -35,16 +34,22 @@ func main() {
 		flag.Usage()
 		return
 	}
-	if mtef.doTimeStampLogs {
-		log.SetFlags(log.LstdFlags | log.LUTC)
-	}
 
+	// logging
+	setupLogging(mtef.logLevel, mtef.doTimeStampLogs)
+
+	// and go …
 	collector := job.NewCollector()
 
 	jobs := job.Jobs{}
 
 	if len(flag.Args()) > 0 {
-		j := job.NewJob(mtef.mtrBin, flag.Args(), mtef.schedule)
+
+		tsmode := timeshift.None
+		if mtef.timeShift != "" {
+			tsmode = timeshift.RandomDelay
+		}
+		j := job.NewJob(mtef.mtrBin, flag.Args(), mtef.schedule, tsmode, mtef.timeShift)
 		j.Label = mtef.jobLabel
 		jobs = append(jobs, j)
 	}
@@ -53,13 +58,17 @@ func main() {
 
 	if mtef.jobFile != "" {
 		if mtef.doWatchJobsFile != "" {
-			log.Printf("info: watching %q at %q", mtef.jobFile, mtef.doWatchJobsFile)
+			slog.Info("watching -jobs-file",
+				"jobs.fileName", mtef.jobFile,
+				"jobs.schedule", mtef.doWatchJobsFile)
 			job.WatchJobsFile(mtef.jobFile, mtef.mtrBin, mtef.doWatchJobsFile, collector)
 			jobsAvailable = true
 		} else {
 			jobsFromFile, _, err := job.ParseJobFile(mtef.jobFile, mtef.mtrBin)
 			if err != nil {
-				log.Printf("error: parsing jobs file %q: %s", mtef.jobFile, err)
+				slog.Error("parsing jobs file failed",
+					"jobs.fileName", mtef.jobFile,
+					"error", err)
 				os.Exit(1)
 			}
 			if !jobsFromFile.Empty() {
@@ -70,7 +79,7 @@ func main() {
 	}
 
 	if !jobsAvailable {
-		log.Println("error: no mtr jobs defined - provide at least one via -file or via arguments")
+		slog.Error("no mtr jobs defined - provide at least one via -file or via arguments")
 		os.Exit(1)
 	}
 
@@ -82,7 +91,7 @@ func main() {
 	)
 
 	if err := jobs.ReSchedule(scheduler, collector); err != nil {
-		log.Printf("error: %v", err)
+		slog.Error("", "error", err)
 		os.Exit(1)
 	}
 
@@ -94,23 +103,19 @@ func main() {
 		fmt.Fprintln(w, mtrIndexPage)
 	})
 
-	log.Println("serving /metrics at", mtef.bindAddr, "...")
+	slog.Info("serving...",
+		"http.path", "/metrics",
+		"http.bindAddr", mtef.bindAddr)
 
 	server := &http.Server{
 		Addr:              mtef.bindAddr,
 		ReadHeaderTimeout: 1 * time.Second,
 	}
 
-	log.Fatal(server.ListenAndServe())
+	maybeError := slog.Attr{}
+	if err := server.ListenAndServe(); err != nil {
+		maybeError.Key = "error"
+		maybeError.Value = slog.StringValue(err.Error())
+	}
+	slog.Info("done.", maybeError)
 }
-
-const mtrIndexPage = `<!doctype html>
-<html lang="en">
-<head>
-	<meta charset="utf-8">
-	<title>mtr-exporter</title>
-</head>
-<body>
-	mtr-exporter - <a href="https://github.com/mgumz/mtr-exporter">https://github.com/mgumz/mtr-exporter<a><br>
-	see <a href="/metrics">/metrics</a>.
-</body>`

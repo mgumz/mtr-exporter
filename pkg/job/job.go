@@ -25,6 +25,12 @@ func (jm *JobMeta) DataAvailable() bool { return len(jm.Runs) > 0 }
 type Job struct {
 	JobMeta
 
+	scheduler struct {
+		spec     string
+		instance *cron.Cron
+		entryID  cron.EntryID
+	}
+
 	mtrBinary string
 	args      []string
 	cmdLine   string
@@ -43,7 +49,7 @@ func NewJob(mtr string, args []string, schedule string) *Job {
 		cmdLine:   strings.Join(append([]string{mtr}, args...), " "),
 	}
 	job.Runs = map[string]int64{}
-	job.Schedule = schedule
+	job.scheduler.spec = schedule
 	job.CmdLine = job.cmdLine
 	return &job
 }
@@ -71,7 +77,7 @@ func (job *Job) Launch() error {
 	// decode the report
 	report := mtr.Report{}
 	if err := report.Decode(&bufStdout); err != nil {
-		report.ErrorMsg = "error-decoding-mtr-json"
+		report.ErrorMsg = errDecodeError
 	} else {
 		report.ErrorMsg = errMsg
 	}

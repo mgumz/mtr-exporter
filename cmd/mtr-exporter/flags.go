@@ -3,11 +3,12 @@ package main
 import "flag"
 
 type mteFlags struct {
-	mtrBin   string
-	jobLabel string
-	bindAddr string
-	jobFile  string
-	schedule string
+	mtrBin    string
+	jobLabel  string
+	bindAddr  string
+	jobFile   string
+	schedule  string
+	logLevel  string
 
 	doWatchJobsFile string
 	doPrintVersion  bool
@@ -25,12 +26,14 @@ func newFlags() *mteFlags {
 	flag.StringVar(&mte.bindAddr, "bind", ":8080", "bind address")
 	flag.StringVar(&mte.jobFile, "jobs", "", "file containing job definitions")
 	flag.StringVar(&mte.schedule, "schedule", "@every 60s", "schedule at which often `mtr` is launched")
+	flag.StringVar(&mte.timeShift, "timeshift", "", "timeshift the -schedule a bit")
 	flag.StringVar(&mte.doWatchJobsFile, "watch-jobs", "", "re-parse -jobs file to schedule")
 	flag.BoolVar(&mte.doPrintVersion, "version", false, "show version")
 	flag.BoolVar(&mte.doPrintVersion, "show-version", false, "show version")
 	flag.BoolVar(&mte.doPrintLicense, "show-license", false, "show license")
 	flag.BoolVar(&mte.doPrintUsage, "h", false, "show help")
 	flag.BoolVar(&mte.doTimeStampLogs, "tslogs", false, "use timestamps in logs")
+	flag.StringVar(&mte.logLevel, "log-level", "info", "log level")
 
 	return mte
 }

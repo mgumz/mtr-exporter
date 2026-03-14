@@ -61,11 +61,14 @@ func parseJobLine(line string, lnr int, mtr string) (*Job, error) {
 
 	parts := strings.SplitN(line, " -- ", maxParts)
 	if len(parts) != maxParts {
-		return nil, fmt.Errorf("invalid jobLine %d: expect '<label> -- <schedule> -- <mtr-flags>'", lnr)
+		return nil, fmt.Errorf(errInvalidJobLine, lnr)
 	}
 
 	label, _ := parseLabel(strings.TrimSpace(parts[0]))
-	schedule, _ := parseSchedule(strings.TrimSpace(parts[1]))
+	schedule, tmode, tspec, err := parseSchedule(strings.TrimSpace(parts[1]))
+	if err != nil {
+		return nil, fmt.Errorf(errInvalidJobLine, lnr)
+	}
 	mtrArgs, _ := parseMtrArgs(strings.TrimSpace(parts[2]))
 
 	job := NewJob(mtr, mtrArgs, schedule)

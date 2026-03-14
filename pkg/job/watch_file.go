@@ -2,7 +2,8 @@ package job
 
 import (
 	"bytes"
-	"log"
+	"fmt"
+	"log/slog"
 	"os"
 	"time"
 
@@ -31,7 +32,8 @@ func WatchJobsFile(name, mtrBin, watchSchedule string, collector *Collector) {
 	)
 
 	if _, err := scheduler.AddJob(watchSchedule, watcher); err != nil {
-		log.Printf("error: unable to launch watch-jobs scheduler: %v", err)
+		slog.Error(errLaunchJobWatch,
+			"error", err)
 		os.Exit(1)
 	}
 	scheduler.Start()
@@ -48,20 +50,37 @@ type jobFileWatch struct {
 
 func (jw *jobFileWatch) Run() {
 
-	log.Printf("info: starting to parse %q", jw.name)
+	slog.Info(infoStartingParse,
+		"status", "starting",
+		"job.file", jw.name)
+
 	jobs, chksum, err := ParseJobFile(jw.name, jw.mtrBin)
 	if err != nil {
-		log.Printf("warning: parsing %q: %v", jw.name, err)
+		slog.Warn(
+			"parsing failed",
+			"job.file", jw.name,
+			"error", err,
+		)
 		return
 	}
-	log.Printf("info: done parsing %q: %d jobs (previous-sha256:%x|current-sha256:%x) ", jw.name, len(jobs), jw.chksum, chksum)
+
+	slog.Info(infoDoneParse,
+		"status", "done",
+		"njobs", len(jobs),
+		"job.file", jw.name,
+		"job.file.prev-sha256", fmt.Sprintf("%x", string(jw.chksum)),
+		"job.file.sha256", fmt.Sprintf("%x", string(chksum)),
+	)
 
 	if bytes.Equal(jw.chksum, chksum) {
-		log.Printf("info: watched file is unchanged")
+		slog.Info(infoJobFileUnchanged,
+			"job.file", jw.name)
 		return
 	}
 
-	log.Printf("info: watched file changed: replacing %d jobs", len(jobs))
+	slog.Info(infoJobFileChanged,
+		"njobs", len(jobs),
+		"job.file", jw.name)
 
 	_ = jobs.ReSchedule(jw.scheduler, jw.collector)
 

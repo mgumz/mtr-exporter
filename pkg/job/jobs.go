@@ -2,7 +2,7 @@ package job
 
 import (
 	"errors"
-	"log"
+	"log/slog"
 
 	"github.com/robfig/cron/v3"
 )
@@ -28,12 +28,13 @@ func (jobs Jobs) ReSchedule(scheduler *cron.Cron, collector *Collector) error {
 	scheduler.Stop()
 
 	// step 1: clean out currently scheduled jobs
-	entries := []cron.EntryID{}
-	for _, entry := range scheduler.Entries() {
-		entries = append(entries, entry.ID)
+	entries := scheduler.Entries()
+	ids := make([]cron.EntryID, len(entries))
+	for i, entry := range entries {
+		ids[i] = entry.ID
 	}
-	for _, entry := range entries {
-		scheduler.Remove(entry)
+	for _, id := range ids {
+		scheduler.Remove(id)
 	}
 
 	// step 2: unregister previous jobs
@@ -48,25 +49,33 @@ func (jobs Jobs) ReSchedule(scheduler *cron.Cron, collector *Collector) error {
 	n := 0
 	for _, j := range jobs {
 		if !collector.AddJob(j.JobMeta) {
-			log.Printf("error: unable to add job %q to collector", j.Label)
+			slog.Error(errAddToCollector,
+				"job.label", j.Label)
 			if err != nil {
-				err = errors.New("collector error")
+				err = errors.New(errGenericCollector)
 			}
 			continue
 		}
-		log.Printf("info: schedule %q to %q", j.Label, j.Schedule)
+		slog.Info(infoJobSchedule,
+			"job.label", j.Label,
+			"job.schedule", j.scheduler.spec,
+		)
+
 		j.UpdateFn = func(meta JobMeta) bool { return collector.UpdateJob(meta) }
-		if _, err2 := scheduler.AddJob(j.Schedule, j); err2 != nil {
-			log.Printf("error: unable to add %q to scheduler: %v", j.Label, err2)
 			if err != nil {
 				err = errors.New("schedule error")
 			}
 		}
+
+		j.scheduler.entryID = scheduler.Schedule(s, j)
+		j.scheduler.instance = scheduler
 		n++
 	}
 	if n > 0 {
-		log.Printf("info: restart scheduler (%d)", n)
+		slog.Info("restart scheduler", "status", "start")
 		scheduler.Start()
+		logSchedulerEntries(scheduler)
+		slog.Info("restart scheduler", "status", "done")
 	}
 
 	return err

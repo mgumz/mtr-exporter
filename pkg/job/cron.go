@@ -1,23 +1,32 @@
 package job
 
 import (
-	"fmt"
-	"log"
+	"log/slog"
 )
 
 // cron.v3 interface
 func (job *Job) Run() {
 
-	log.Printf("info: %q launching via %q", job.Label, job.cmdLine)
+	slog.Info(infoJobLaunching,
+		"job.label", job.Label,
+		"job.cmd", job.cmdLine)
+
 	if err := job.Launch(); err != nil {
-		log.Printf("info: %q failed: %s", job.Label, err)
+		slog.Error(errJobLaunchFailed,
+			"job.label", job.Label,
+			"error", err)
 		return
 	}
 
-	errMsg := ""
+	errMsg := slog.Attr{}
 	if job.Report.ErrorMsg != "" {
-		errMsg = fmt.Sprintf("(err: %q)", job.Report.ErrorMsg)
+		errMsg.Key = "error"
+		errMsg.Value = slog.StringValue(job.Report.ErrorMsg)
 	}
-	log.Printf("info: %q done%s: %d hops in %s.", job.Label,
-		errMsg, len(job.Report.Hubs), job.Duration)
+
+	slog.Info(infoJobDone,
+		"job.label", job.Label,
+		"nhops", len(job.Report.Hubs),
+		"duration", job.Duration,
+		errMsg)
 }
