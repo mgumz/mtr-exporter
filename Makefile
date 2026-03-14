@@ -18,11 +18,10 @@ RELEASES=$(subst windows.amd64.tar.gz,windows.amd64.zip,$(foreach r,$(subst .exe
 
 LDFLAGS:=$(LDFLAGS) -ldflags "-X main.Version=$(VERSION) -X main.BuildDate=$(BUILD_DATE) -X main.GitHash=$(GIT_HASH)"
 
-$(PROJECT):
-	go build -v -trimpath -o $@ ./cmd/$(PROJECT)
-
 ######################################################
 ## release related
+
+default: $(PROJECT)
 
 binaries: $(BINARIES)
 release: $(RELEASES)
