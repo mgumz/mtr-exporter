@@ -80,26 +80,35 @@ example of a Dashboard ready for [Grafana].
                 schedule at which often mtr is launched (default: "@every 60s")
                 examples:
                    @every <dur>  - example "@every 60s"
-                   @hourly       - run once per hour
+                       @hourly       - run once per hour
                    10 * * * *    - execute 10 minutes after the full hour
                 see https://en.wikipedia.org/wiki/Cron
-    -show-license
-                show license
-    -show-version
-                show version
+    -timeshift  <timeshift>
+               timeshift around the point in time when -schedule would trigger otherwise
+               (default: "" - no timeshift)
     -tslogs
                 use timestamps in logs
     -watch-jobs <schedule>
                 periodically watch the file defined via -jobs (default: "")
                 if it has changed stop previously running mtr-jobs and apply
                 all jobs defined in -jobs.
+    -version
+    -show-version
+                show version
+    -show-license
+                show license
+
     MTR-FLAGS:
             see "man mtr" for valid flags to mtr.
 
 Since [mtr] itself supports the environment variable `MTR_OPTIONS`, you can
 also use it to specify common options for all the launched [mtr] instances
 
-At `/metrics` the measured values of the last run are exposed.
+### HTTP Endpoints
+
+* /metrics - metrics in prometheus format
+* /health  - endpoint to indicate the healthieness
+* /        - small info page with link to /metrics
 
 ### Examples
 
@@ -127,9 +136,24 @@ At `/metrics` the measured values of the last run are exposed.
 
 * `@every <duration> unless finished`
 
+Optionally, if the `<schedule>` has a suffix of `<timeShiftSpec>`, the actual
+execution of the job is, well, shifted. Reason: `mtr` usually causes a burst
+of IMCP traffic, some network administrators like to apply rate limits on 
+ICMP messages.
+
+**NOTE**: To minimize the concerted effect a `mtr` run might cause: use
+`timeshifts` to deviate or to delay the actual execution by a random amount!
+
+`<timeShiftSpec>` - Different timeshift expressions in the Jobs-File are supported.
+
+* `~<duration>` - adds a random delay to the otherwise planned point in time.
+                  Example given: `@every 1h ~10m` will trigger the job
+                  somewhen in the range of xx:00 to xx:10. The effective range
+                  is given as `[<planned-point-in-time .. +<duration>]`.
+
 Example:
 
-    quad9       -- @every 120s -- -I ven1 -n 9.9.9.9
+    the-job     -- @every 120s -- -I ven1 -n 198.51.100.1
     example.com -- @every 45s  -- -I ven2 -n example.com
 
 
@@ -141,7 +165,7 @@ Runtime:
 
 Build:
 
-* golang-1.21 and newer
+* golang-1.24 and newer
 
 ## Building
 

@@ -28,6 +28,7 @@ func logSchedulerEntries(scheduler *cron.Cron) {
 			"job.label", j.Label,
 			"job.schedule", j.scheduler.spec,
 			"time.in", e.Next.Sub(now).Truncate(time.Second),
+			"timeshift", &j.Timeshift,
 		)
 	}
 }

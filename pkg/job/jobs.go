@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log/slog"
 
+	"github.com/mgumz/mtr-exporter/pkg/timeshift"
 	"github.com/robfig/cron/v3"
 )
 
@@ -59,12 +60,21 @@ func (jobs Jobs) ReSchedule(scheduler *cron.Cron, collector *Collector) error {
 		slog.Info(infoJobSchedule,
 			"job.label", j.Label,
 			"job.schedule", j.scheduler.spec,
+			"timeshift", &j.Timeshift,
 		)
 
 		j.UpdateFn = func(meta JobMeta) bool { return collector.UpdateJob(meta) }
+
+		s, err2 := timeshift.NewSchedule(j.Timeshift.Mode, j.scheduler.spec, j.Timeshift.Spec)
+
+		if err2 != nil {
+			slog.Error(errAddToScheduler,
+				"job.label", j.Label,
+				"error", err2)
 			if err != nil {
 				err = errors.New("schedule error")
 			}
+			continue
 		}
 
 		j.scheduler.entryID = scheduler.Schedule(s, j)

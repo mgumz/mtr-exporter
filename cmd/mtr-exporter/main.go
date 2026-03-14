@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/mgumz/mtr-exporter/pkg/job"
+	"github.com/mgumz/mtr-exporter/pkg/timeshift"
 
 	"github.com/robfig/cron/v3"
 )

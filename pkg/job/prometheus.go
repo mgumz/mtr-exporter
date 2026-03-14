@@ -91,7 +91,7 @@ func (c *Collector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func writeMetricsForHubs(w io.Writer, report mtr.Report, tsMs int64, labels map[string]string, minLoss *float64) {
 
-	path := []string{}
+	path := make([]string, 0, report.HubsTotal())
 
 	lh := report.HubsTotal() - 1
 	for i, hub := range report.Hubs {
@@ -178,13 +178,14 @@ func pathId(hosts []string) int64 {
 	// RFC7693 states 2^192 collision resistency on 48bit digest size.
 
 	const digestSize = 6
+	const bitsPerByte = 8
 
 	hasher, _ := blake2b.New(digestSize, nil)
 	hasher.Write([]byte(path))
 
 	pathId := int64(0)
 	for i, n := range hasher.Sum(nil) {
-		pathId = pathId | (int64(n) << (i * 8))
+		pathId |= (int64(n) << (i * bitsPerByte))
 	}
 
 	return pathId

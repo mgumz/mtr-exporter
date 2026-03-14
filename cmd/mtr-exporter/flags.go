@@ -8,6 +8,7 @@ type mteFlags struct {
 	bindAddr  string
 	jobFile   string
 	schedule  string
+	timeShift string
 	logLevel  string
 
 	doWatchJobsFile string

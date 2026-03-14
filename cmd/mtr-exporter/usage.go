@@ -24,6 +24,9 @@ FLAGS:
                @hourly       - run once per hour
                10 * * * *    - execute 10 minutes after the full hour
             see https://en.wikipedia.org/wiki/Cron
+-timeshift  <timeshift>
+            timeshift around the point in time when -schedule would trigger otherwise
+            (default: "" - no timeshift)
 -tslogs
             use timestamps in logs
 -watch-jobs <schedule>

@@ -33,6 +33,9 @@ linters:
       - path: 'pkg/mtr/prometheus\.go'
         linters:
           - lll
+      - path: 'pkg/timeshift/random_deviation\.go'
+        linters:
+          - lll
   settings:
     funlen:
       ignore-comments: true

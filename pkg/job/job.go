@@ -7,15 +7,17 @@ import (
 	"time"
 
 	"github.com/mgumz/mtr-exporter/pkg/mtr"
+	"github.com/mgumz/mtr-exporter/pkg/timeshift"
+	"github.com/robfig/cron/v3"
 )
 
 type JobMeta struct {
-	Report   mtr.Report
-	Launched time.Time
-	Duration time.Duration
-	Schedule string
-	Label    string
-	CmdLine  string
+	Report    mtr.Report
+	Launched  time.Time
+	Duration  time.Duration
+	Timeshift tsMeta
+	Label     string
+	CmdLine   string
 
 	Runs map[string]int64
 }
@@ -38,7 +40,7 @@ type Job struct {
 	UpdateFn func(JobMeta) bool
 }
 
-func NewJob(mtr string, args []string, schedule string) *Job {
+func NewJob(mtr string, args []string, schedule string, tmode timeshift.Mode, tspec string) *Job {
 	extra := []string{
 		"-j", // JSON output
 	}
@@ -50,6 +52,7 @@ func NewJob(mtr string, args []string, schedule string) *Job {
 	}
 	job.Runs = map[string]int64{}
 	job.scheduler.spec = schedule
+	job.Timeshift = tsMeta{tmode, tspec}
 	job.CmdLine = job.cmdLine
 	return &job
 }
