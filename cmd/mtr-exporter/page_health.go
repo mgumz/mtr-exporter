@@ -6,5 +6,5 @@ import (
 )
 
 func mtrHealthPage(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "OK\n")
+	_, _ = io.WriteString(w, "OK\n")
 }

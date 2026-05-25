@@ -41,9 +41,8 @@ type Job struct {
 }
 
 func NewJob(mtr string, args []string, schedule string, tmode timeshift.Mode, tspec string) *Job {
-	extra := []string{
-		"-j", // JSON output
-	}
+	extra := make([]string, 1, len(args)+1)
+	extra[0] = "-j" // JSON
 	args = append(extra, args...)
 	job := Job{
 		args:      args,

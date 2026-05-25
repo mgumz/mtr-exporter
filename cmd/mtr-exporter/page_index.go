@@ -18,5 +18,5 @@ func mtrIndexPage(w http.ResponseWriter, r *http.Request) {
 	see <a href="/metrics">/metrics</a>.
 </body>`
 
-	io.WriteString(w, txt)
+	_, _ = io.WriteString(w, txt)
 }
