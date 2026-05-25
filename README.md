@@ -23,7 +23,7 @@ Usually, [mtr] is producing the following output:
 
     # mtr run: 2020-03-08T16:37:05.000377Z
     # cmdline: /usr/local/sbin/mtr -j -c 2 -n example.com
-    mtr_runs_total{bitpattern="0x00",dst="example.com",psize="64",src="src,example.com",tests="2",tos="0"} 13 1583685425000
+    mtr_runs_total{bitpattern="0x00",dst="example.com",psize="64",src="src.example.com",tests="2",tos="0x0"} 13 1583685425000
     mtr_report_duration_seconds{bitpattern="0x00",dst="example.com",psize="64",src="src.example.com",tests="2",tos="0x0"} 7.179 1583685425000
     mtr_report_count_hubs{bitpattern="0x00",dst="example.com",psize="64",src="src.example.com",tests="2",tos="0x0"} 10 1583685425000
     mtr_report_loss{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.000000 1583685425000
@@ -35,8 +35,8 @@ Usually, [mtr] is producing the following output:
     mtr_report_stdev{bitpattern="0x00",hop="first",count="1",dst="example.com",host="127.0.0.1",psize="64",src="src.example.com",tests="2",tos="0x0"} 0.130000 1583685425000
 
 Each hop gets a label `"hop"="first"`, `"hop"="last"`, `"hop"="first_last"` or
-`"hop"="intermediate"`, depending where on the path to the destination the hop
-is.
+`"hop"="intermediate"`, depending on where on the path to the destination the
+hop is.
 
 Legacy: the last hop in the list of tested hosts contains the label `"last"="true"`.
 Use `hop=~".*last"` in your Prometheus queries to achieve the same.
@@ -51,7 +51,7 @@ metrics. One can use a prometheus query such as this to detect changes:
 changes(max by(dst) (mtr_report_path_id{hop="last"})[5m:1m])
 ```
 
-Such data can then visualized with [Grafana]:
+Such data can then be visualized with [Grafana]:
 
 ![MTR results in Grafana](./media/screenshot-2026-01-24-fs8.png)
 
@@ -65,9 +65,6 @@ example of a Dashboard ready for [Grafana].
     FLAGS:
     -bind       <bind-address>
                 bind address (default ":8080")
-    -flag.deprecatedMetrics
-                render deprecated metrics (default: false)
-                helps with transition time until deprecated metrics are gone
     -h
                 show help
     -jobs       <path-to-jobsfile>
@@ -80,14 +77,16 @@ example of a Dashboard ready for [Grafana].
                 schedule at which often mtr is launched (default: "@every 60s")
                 examples:
                    @every <dur>  - example "@every 60s"
-                       @hourly       - run once per hour
+                   @hourly       - run once per hour
                    10 * * * *    - execute 10 minutes after the full hour
                 see https://en.wikipedia.org/wiki/Cron
     -timeshift  <timeshift>
-               timeshift around the point in time when -schedule would trigger otherwise
-               (default: "" - no timeshift)
+                timeshift around the point in time when -schedule would trigger otherwise
+                (default: "" - no timeshift)
     -tslogs
                 use timestamps in logs
+    -log-level  <level>
+                log level: debug, info, warn, error (default: "info")
     -watch-jobs <schedule>
                 periodically watch the file defined via -jobs (default: "")
                 if it has changed stop previously running mtr-jobs and apply
@@ -102,12 +101,12 @@ example of a Dashboard ready for [Grafana].
             see "man mtr" for valid flags to mtr.
 
 Since [mtr] itself supports the environment variable `MTR_OPTIONS`, you can
-also use it to specify common options for all the launched [mtr] instances
+also use it to specify common options for all the launched [mtr] instances.
 
 ### HTTP Endpoints
 
 * /metrics - metrics in prometheus format
-* /health  - endpoint to indicate the healthieness
+* /health  - endpoint to indicate the healthiness
 * /        - small info page with link to /metrics
 
 ### Examples
@@ -133,12 +132,12 @@ also use it to specify common options for all the launched [mtr] instances
 * `* * * * *` - a cron expression, see https://en.wikipedia.org/wiki/Cron
 * `@hourly` | `@daily` etc - see https://pkg.go.dev/github.com/robfig/cron/v3#hdr-Predefined_schedules
 * `@every <duration>` - execute [mtr] in an interval
-
-* `@every <duration> unless finished`
+* `@every <duration> unless finished` - same, but skip the next firing if the
+  previous run is still active
 
 Optionally, if the `<schedule>` has a suffix of `<timeShiftSpec>`, the actual
 execution of the job is, well, shifted. Reason: `mtr` usually causes a burst
-of IMCP traffic, some network administrators like to apply rate limits on 
+of ICMP traffic, some network administrators like to apply rate limits on
 ICMP messages.
 
 **NOTE**: To minimize the concerted effect a `mtr` run might cause: use
@@ -147,7 +146,7 @@ ICMP messages.
 `<timeShiftSpec>` - Different timeshift expressions in the Jobs-File are supported.
 
 * `~<duration>` - adds a random delay to the otherwise planned point in time.
-                  Example given: `@every 1h ~10m` will trigger the job
+                  For example, `@every 1h ~10m` will trigger the job
                   somewhen in the range of xx:00 to xx:10. The effective range
                   is given as `[<planned-point-in-time .. +<duration>]`.
 
@@ -155,7 +154,6 @@ Example:
 
     the-job     -- @every 120s -- -I ven1 -n 198.51.100.1
     example.com -- @every 45s  -- -I ven2 -n example.com
-
 
 ## Requirements
 
@@ -165,7 +163,16 @@ Runtime:
 
 Build:
 
-* golang-1.24 and newer
+* golang-1.25 and newer
+
+## Logging
+
+`mtr-exporter` emits structured logs via Go's `log/slog`. The log level can be
+controlled via `-log-level` (default: `info`). Use `-tslogs` to prefix log
+lines with a timestamp.
+
+Note: the log line format changed in 0.7.0; downstream log parsers may need
+adjustment.
 
 ## Building
 
@@ -179,21 +186,23 @@ One-off building and "installation":
 
 ## OCI Images
 
-OCI images for `linux/amd64` platform are available for recent releases under
-https://github.com/mgumz/mtr-exporter/pkgs/container/mtr-exporter
+OCI images for `linux/amd64` and `linux/arm64` platforms are available for
+recent releases under
+[ghcr.io/mgumz/mtr-exporter](https://github.com/mgumz/mtr-exporter/pkgs/container/mtr-exporter).
 
 Make sure to preserve the ENTRY command to benefit from the default
-[krallin/tini](s://github.com/krallin/tini) zombie. In kubernetes, this
-translates into omitting the `command` and only specifying `args` for passing
-mtr-exporter
+[krallin/tini](https://github.com/krallin/tini) zombie reaper. In kubernetes,
+this translates into omitting the `command` and only specifying `args` for
+passing mtr-exporter:
+
 ```yaml
       containers:
         - name: mtr-prometheus-collector
-          image: ghcr.io/mgumz/mtr-exporter:0.4.0
+          image: ghcr.io/mgumz/mtr-exporter:0.7.0
 
           # Note: We need to override the container entry point which is an
           # array ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/mtr-exporter"]
-          # Only the fist element end up in the container `command`, and the two
+          # Only the first element ends up in the container `command`, and the two
           # others end up in the default `args` value
           # See sources at https://github.com/mgumz/mtr-exporter/blob/fd2834d5269afebfc0cd2c269a8bb26d8d816a0c/Containerfile#L29C1-L29C57
           command:
@@ -210,10 +219,9 @@ mtr-exporter
             - "example.com"
 ```
 
-
 ## License
 
-see LICENSE file
+See the [LICENSE](LICENSE) file.
 
 ## Author(s)
 
